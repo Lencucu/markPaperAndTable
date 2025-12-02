@@ -1,12 +1,16 @@
 #include "mptfloatplane.h"
+#include "globalresource.h"
 
 #include <QApplication>
 #include <QHotkey>
 #include <QDebug>
 
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    globalresource.init_db();
 
     mptfloatplane w;
     w.show();

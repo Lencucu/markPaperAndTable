@@ -1,10 +1,25 @@
 #include "mptfloatplane.h"
 #include "./ui_mptfloatplane.h"
+#include "./ui_preview.h"
 #include <QApplication>
 #include <QScreen>
 #include <QRect>
 #include <windows.h>
 #include <shellapi.h>
+
+preview::preview(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::preview)
+{
+    ui->setupUi(this);
+
+    show();
+}
+
+preview::~preview()
+{
+    delete ui;
+}
 
 int getTaskbarHeight() {
     APPBARDATA abd{};
@@ -40,10 +55,17 @@ mptfloatplane::mptfloatplane(QWidget *parent)
     resize(screenWidth/3, screenHeight/4);
     ui->lineEdit->move(margin, margin);
     ui->lineEdit->resize(width() - 2*margin, ui->lineEdit->height());
+
+    preview.push_back(new ::preview{this});
+    int previewY = ui->lineEdit->geometry().bottom() + margin;
+    preview.back()->move(margin,ui->lineEdit->geometry().bottom() + margin);
+    int previewHeight = height() - previewY - margin;
+    preview.back()->resize(previewHeight*4/3, previewHeight);
 }
 
 mptfloatplane::~mptfloatplane()
 {
     delete ui;
+    for(auto& it:preview) delete it;
 }
 

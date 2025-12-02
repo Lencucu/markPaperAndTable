@@ -13,18 +13,21 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql)
 find_package(QHotkey REQUIRED)
 add_library(QHotkey::QHotkey ALIAS qhotkey)
 
 set(PROJECT_SOURCES
-        design.md
+        notes/design.md
+        readme.md
         main.cpp
         mptfloatplane.ui
         mptfloatplane.h
         mptfloatplane.cpp
         preview.ui
         .gitignore
+        globalresource.h
+        globalresource.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -50,9 +53,24 @@ else()
     endif()
 endif()
 
+target_include_directories(markPaperAndTable PRIVATE
+    ${CMAKE_SOURCE_DIR}/AIA_public_tools/include
+)
+
 target_link_libraries(markPaperAndTable PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Sql
     QHotkey::QHotkey
+    ${CMAKE_SOURCE_DIR}/AIA_public_tools/theBuilder/output/dll/lcctoolbox.lib
+)
+
+add_custom_command(TARGET markPaperAndTable POST_BUILD
+COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_SOURCE_DIR}/AIA_public_tools/theBuilder/output/dll/lcctoolbox.dll
+    $<TARGET_FILE_DIR:markPaperAndTable>
+COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/notes
+    $<TARGET_FILE_DIR:markPaperAndTable>/notes
 )
 
 set_target_properties(markPaperAndTable PROPERTIES

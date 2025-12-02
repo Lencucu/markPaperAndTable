@@ -3,10 +3,25 @@
 
 #include <QMainWindow>
 #include <QEvent>
+#include <list>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class mptfloatplane; }
+namespace Ui {
+    class mptfloatplane;
+    class preview;
+}
 QT_END_NAMESPACE
+
+class preview : public QWidget{
+    Q_OBJECT
+
+public:
+    preview(QWidget *parent = nullptr);
+    ~preview();
+
+private:
+    Ui::preview *ui;
+};
 
 class mptfloatplane : public QWidget
 {
@@ -18,6 +33,7 @@ public:
 
 private:
     Ui::mptfloatplane *ui;
+    std::list<QWidget*> preview;
 
 protected:
     bool event(QEvent *e) override {
