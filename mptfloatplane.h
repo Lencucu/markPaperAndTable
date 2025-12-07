@@ -3,13 +3,12 @@
 
 #include <QMainWindow>
 #include <QEvent>
-#include <list>
+#include <QResizeEvent>
+#include <QLineEdit>
+#include <QHBoxLayout>
+#include <QTextBrowser>
 
 QT_BEGIN_NAMESPACE
-namespace Ui {
-    class mptfloatplane;
-    class preview;
-}
 QT_END_NAMESPACE
 
 class preview : public QWidget{
@@ -20,7 +19,12 @@ public:
     ~preview();
 
 private:
-    Ui::preview *ui;
+    QTextBrowser* textbrowser=nullptr;
+
+protected:
+    void resizeEvent(QResizeEvent *e){
+        if(textbrowser) textbrowser->resize(e->size());
+    }
 };
 
 class mptfloatplane : public QWidget
@@ -32,8 +36,8 @@ public:
     ~mptfloatplane();
 
 private:
-    Ui::mptfloatplane *ui;
-    std::list<QWidget*> preview;
+    QLineEdit* searchBar;
+    QHBoxLayout* previews;
 
 protected:
     bool event(QEvent *e) override {

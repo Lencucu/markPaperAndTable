@@ -19,9 +19,9 @@ add_library(QHotkey::QHotkey ALIAS qhotkey)
 
 set(PROJECT_SOURCES
         notes/design.md
+        assets/mpt.png
         readme.md
         main.cpp
-        mptfloatplane.ui
         mptfloatplane.h
         mptfloatplane.cpp
         preview.ui
@@ -71,6 +71,9 @@ COMMAND ${CMAKE_COMMAND} -E copy_if_different
 COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/notes
     $<TARGET_FILE_DIR:markPaperAndTable>/notes
+COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:markPaperAndTable>/assets
 )
 
 set_target_properties(markPaperAndTable PROPERTIES
