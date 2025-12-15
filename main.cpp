@@ -1,5 +1,5 @@
-#include "mptfloatplane.h"
-#include "globalresource.h"
+#include <wrapper.hpp>
+#include <widgets/XHoverPlane.hpp>
 
 #include <QApplication>
 #include <QHotkey>
@@ -10,19 +10,12 @@
 
 
 int main(int argc, char *argv[])
-{
-    {
-        LccToolbox::originstr str;
-        str=("notes/design.md");
-        LccToolbox::fileBox *what = new LccToolbox::fileBox{str.c_str()};
-        delete what;
-    }
-    QApplication a(argc, argv);
-    globalresource.query_db();
+{   QApplication a(argc, argv);
+//    globalresource.query_sqlite_db();
 
     // 托盘图标
     QSystemTrayIcon *tray = new QSystemTrayIcon(&a);
-    tray->setIcon(QIcon("assets/mpt.png"));   // 换成你的图标
+    tray->setIcon(QIcon("logo.png"));   // 换成你的图标
     tray->setToolTip("mpt");
 
     // 托盘菜单
@@ -34,7 +27,7 @@ int main(int argc, char *argv[])
     tray->show();
 
 
-    mptfloatplane w;
+    HoverPlane w;
     w.show();
     w.setWindowOpacity(0.5);
 

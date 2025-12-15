@@ -1,3 +1,3 @@
-[submodule "AIA_public_tools"]
-	path = AIA_public_tools
+[submodule "3rd/lcctoolbox"]
+	path = 3rd/lcctoolbox
 	url = https://gitee.com/frogleg/AIA_public_tools

@@ -18,16 +18,21 @@ find_package(QHotkey REQUIRED)
 add_library(QHotkey::QHotkey ALIAS qhotkey)
 
 set(PROJECT_SOURCES
-        notes/design.md
-        assets/mpt.png
-        readme.md
+        program_assets/notes/design.md
+        program_assets/notes/timetest.md
+        program_assets/logo/mpt.png
+        program_assets/recorder.db
+        wrapper/include/interface_datebase/sql_wrapper.hpp
+        wrapper/include/interface_resource/text_box.hpp
+        wrapper/include/widgets/XHoverPlane.hpp
+        wrapper/include/widgets/XPreview.hpp
+        wrapper/include/wrapper.hpp
+        wrapper/src/widgets/XHoverPlane.cpp
+        wrapper/src/widgets/XPreview.cpp
+        wrapper/src/wrapper.cpp
         main.cpp
-        mptfloatplane.h
-        mptfloatplane.cpp
-        preview.ui
+        readme.md
         .gitignore
-        globalresource.h
-        globalresource.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -54,26 +59,30 @@ else()
 endif()
 
 target_include_directories(markPaperAndTable PRIVATE
-    ${CMAKE_SOURCE_DIR}/AIA_public_tools/include
+    ${CMAKE_SOURCE_DIR}/3rd/lcctoolbox/include
+    ${CMAKE_SOURCE_DIR}/wrapper/include
 )
 
 target_link_libraries(markPaperAndTable PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Sql
     QHotkey::QHotkey
-    ${CMAKE_SOURCE_DIR}/AIA_public_tools/theBuilder/output/dll/lcctoolbox.lib
+    ${CMAKE_SOURCE_DIR}/3rd/lcctoolbox/theBuilder/output/dll/lcctoolbox.lib
 )
 
 add_custom_command(TARGET markPaperAndTable POST_BUILD
 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${CMAKE_SOURCE_DIR}/AIA_public_tools/theBuilder/output/dll/lcctoolbox.dll
+    ${CMAKE_SOURCE_DIR}/3rd/lcctoolbox/theBuilder/output/dll/lcctoolbox.dll
     $<TARGET_FILE_DIR:markPaperAndTable>
 COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/notes
+    ${CMAKE_SOURCE_DIR}/program_assets/notes
     $<TARGET_FILE_DIR:markPaperAndTable>/notes
 COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/assets
-    $<TARGET_FILE_DIR:markPaperAndTable>/assets
+    ${CMAKE_SOURCE_DIR}/program_assets/logo
+    $<TARGET_FILE_DIR:markPaperAndTable>
+COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_SOURCE_DIR}/program_assets/recorder.db
+    $<TARGET_FILE_DIR:markPaperAndTable>
 )
 
 set_target_properties(markPaperAndTable PROPERTIES

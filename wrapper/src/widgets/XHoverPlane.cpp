@@ -1,23 +1,15 @@
-#include "mptfloatplane.h"
+#include <widgets/XHoverPlane.hpp>
+#include <QLineEdit>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QApplication>
 #include <QScreen>
 #include <QRect>
+#include <QSpacerItem>
+
 #include <windows.h>
 #include <shellapi.h>
-#include <QSpacerItem>
-#include <QVBoxLayout>
-#include <QScrollArea>
-#include <QPushButton>
 
-preview::preview(QWidget *parent)
-    : QWidget(parent)
-{
-    textbrowser = new QTextBrowser{this};
-}
-
-preview::~preview()
-{
-}
 
 int getTaskbarHeight() {
     APPBARDATA abd{};
@@ -35,10 +27,27 @@ int getTaskbarHeight() {
     return 0;
 }
 
-mptfloatplane::mptfloatplane(QWidget *parent)
+
+HoverPlane::HoverPlane(QWidget *parent)
     : QWidget(parent)
 {
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setObjectName("mpt");
+    setStyleSheet(
+        "#mpt, #previews {"
+        " background-color: #D0E8D8;
+        }"
+        "QLineEdit, QTextBrowser {"
+        " border: none;"
+        "}"
+        "QScrollArea {"
+        " border-top: 0px;"
+        " border-bottom: 0px;"
+        " border-left: 2px solid brown;"
+        " border-right: 2px solid brown;"
+        "}"
+    );
 
     QRect screenGeometry = QApplication::primaryScreen()->geometry();
     int screenWidth = screenGeometry.width();
@@ -56,14 +65,27 @@ mptfloatplane::mptfloatplane(QWidget *parent)
     */
 
     searchBar = new QLineEdit;
+    // ** lambda reaction
+    /*
+        new preview() or repalce
+        focusOn()
+        insertIntoPreviews()
+    */
+    connect(searchBar, &QLineEdit::textEdited, this, [&](const QString &text){
+        // qDebug() << "用户编辑文本:" << text;
+        // ** matchTextAndProcess(text.c_str(),fileBoxs,reaction(float score,size_t line,size_t column,size_t length));
+    });
     searchBar->setFixedHeight(screenHeight/4/6);
 
-    QScrollArea* scrollArea = new QScrollArea;
+    HorizontalScrollArea* scrollArea = new HorizontalScrollArea;
     scrollArea->setWidgetResizable(true);// 不知道怎么回事，好像不加这一条或者说是false的情况时视口不会追踪widget，即没内容，而且只会在widget resize时才会更新视口一样，所以默认还是加上，不知道不加和加到底有什么区别
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 总显示
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);   // 默认，超出才显示
+    // scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);   // 默认，超出才显示
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     QWidget* container = new QWidget;
+    container->setObjectName("previews");
     previews = new QHBoxLayout{container};
+    previews->setAlignment(Qt::AlignLeft);
     previews->setSpacing(margin);
     previews->setContentsMargins(0,0,0,0);
     scrollArea->setWidget(container);
@@ -76,14 +98,16 @@ mptfloatplane::mptfloatplane(QWidget *parent)
     vLayout->addWidget(scrollArea);
 
     vLayout->activate();
-    for(int i=0;i<10;++i)
-    {   ::preview* preview = new ::preview;
+    globalresource.query_sqlite_db([&](QString& name){
+        globalresource.papers.emplace_back(name);
+        ::preview* preview = new ::preview;
+        preview->textbrowser->setMarkdown(globalresource.papers.back().content());
         preview->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
         previews->addWidget(preview);
-    }
+    });
 }
 
-mptfloatplane::~mptfloatplane()
+HoverPlane::~HoverPlane()
 {
 }
 
