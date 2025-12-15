@@ -3,11 +3,12 @@
 
 #include <QScrollArea>
 #include <QWheelEvent>
+#include <QScrollBar>
 
 
-class HorizontalScrollArea : public QScrollArea {
+class XHorizontalScrollArea : public QScrollArea {
 public:
-    HorizontalScrollArea(QWidget* parent = nullptr) : QScrollArea(parent) {}
+    XHorizontalScrollArea(QWidget* parent = nullptr) : QScrollArea(parent) {}
 
 protected:
     void wheelEvent(QWheelEvent* event) override {

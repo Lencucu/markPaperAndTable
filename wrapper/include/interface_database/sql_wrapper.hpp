@@ -4,8 +4,8 @@
 #include <QDebug>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
-// #include <QtSql/QSqlError>
-// #include <QtSql/QSqlRecord>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlRecord>
 #include <functional>
 
 

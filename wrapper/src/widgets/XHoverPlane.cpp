@@ -1,4 +1,8 @@
+#include <widgets/XHorizontalScrollArea.hpp>
 #include <widgets/XHoverPlane.hpp>
+#include <widgets/XPreview.hpp>
+#include <interface_database/sql_wrapper.hpp>
+#include <wrapper.hpp>
 #include <QLineEdit>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -28,7 +32,7 @@ int getTaskbarHeight() {
 }
 
 
-HoverPlane::HoverPlane(QWidget *parent)
+XHoverPlane::XHoverPlane(QWidget *parent)
     : QWidget(parent)
 {
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -36,8 +40,8 @@ HoverPlane::HoverPlane(QWidget *parent)
     setObjectName("mpt");
     setStyleSheet(
         "#mpt, #previews {"
-        " background-color: #D0E8D8;
-        }"
+        " background-color: #D0E8D8;"
+        "}"
         "QLineEdit, QTextBrowser {"
         " border: none;"
         "}"
@@ -77,7 +81,7 @@ HoverPlane::HoverPlane(QWidget *parent)
     });
     searchBar->setFixedHeight(screenHeight/4/6);
 
-    HorizontalScrollArea* scrollArea = new HorizontalScrollArea;
+    XHorizontalScrollArea* scrollArea = new XHorizontalScrollArea;
     scrollArea->setWidgetResizable(true);// 不知道怎么回事，好像不加这一条或者说是false的情况时视口不会追踪widget，即没内容，而且只会在widget resize时才会更新视口一样，所以默认还是加上，不知道不加和加到底有什么区别
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 总显示
     // scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);   // 默认，超出才显示
@@ -98,16 +102,16 @@ HoverPlane::HoverPlane(QWidget *parent)
     vLayout->addWidget(scrollArea);
 
     vLayout->activate();
-    globalresource.query_sqlite_db([&](QString& name){
-        globalresource.papers.emplace_back(name);
-        ::preview* preview = new ::preview;
-        preview->textbrowser->setMarkdown(globalresource.papers.back().content());
+    query_sqlite_db([&](QString& name){
+        globalresource::papers.emplace_back(name);
+        XPreview* preview = new XPreview;
+        preview->textbrowser->setMarkdown(globalresource::papers.back().content());
         preview->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
         previews->addWidget(preview);
     });
 }
 
-HoverPlane::~HoverPlane()
+XHoverPlane::~XHoverPlane()
 {
 }
 

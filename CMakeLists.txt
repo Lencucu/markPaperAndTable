@@ -20,10 +20,11 @@ add_library(QHotkey::QHotkey ALIAS qhotkey)
 set(PROJECT_SOURCES
         program_assets/notes/design.md
         program_assets/notes/timetest.md
-        program_assets/logo/mpt.png
+        program_assets/logo/logo.png
         program_assets/recorder.db
-        wrapper/include/interface_datebase/sql_wrapper.hpp
+        wrapper/include/interface_database/sql_wrapper.hpp
         wrapper/include/interface_resource/text_box.hpp
+        wrapper/include/widgets/XHorizontalScrollArea.hpp
         wrapper/include/widgets/XHoverPlane.hpp
         wrapper/include/widgets/XPreview.hpp
         wrapper/include/wrapper.hpp

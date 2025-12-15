@@ -1,22 +1,21 @@
 #ifndef XPREVIEW_HPP
 #define XPREVIEW_HPP
 
-class QWidget;
+#include <QWidget>
 class QTextBrowser;
 class QResizeEvent;
-namespace LccToolbox{
-	template<class T> class GmarkSetAuto;
-}
 
-class preview : public QWidget{
+
+class XPreview : public QWidget{
     Q_OBJECT
 
+    friend class XHoverPlane;
 private:
     QTextBrowser* textbrowser=nullptr;
 
 public:
-    preview(QWidget* parent=nullptr);
-    ~preview(){};
+    XPreview(QWidget* parent=nullptr);
+    ~XPreview(){};
 
 protected:
     void resizeEvent(QResizeEvent *e) override;

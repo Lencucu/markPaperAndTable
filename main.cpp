@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     tray->show();
 
 
-    HoverPlane w;
+    XHoverPlane w;
     w.show();
     w.setWindowOpacity(0.5);
 

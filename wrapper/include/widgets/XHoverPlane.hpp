@@ -12,13 +12,13 @@ class QHBoxLayout;
 #include <QColor>
 
 
-class HoverPlane : public QWidget
+class XHoverPlane : public QWidget
 {
     Q_OBJECT
 
 public:
-    HoverPlane(QWidget *parent = nullptr);
-    ~HoverPlane();
+    XHoverPlane(QWidget *parent = nullptr);
+    ~XHoverPlane();
 
 private:
     QLineEdit* searchBar;

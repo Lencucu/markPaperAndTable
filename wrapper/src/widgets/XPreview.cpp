@@ -3,11 +3,11 @@
 #include <QResizeEvent>
 
 
-preview::preview(QWidget* parent=nullptr):QWidget(parent)
+XPreview::XPreview(QWidget* parent):QWidget(parent)
 {	textbrowser = new QTextBrowser{this};
 }
 
 
-void preview::resizeEvent(QResizeEvent *e){
+void XPreview::resizeEvent(QResizeEvent *e){
     if(textbrowser) textbrowser->resize(e->size());
 }
