@@ -27,10 +27,10 @@ set(PROJECT_SOURCES
         wrapper/include/widgets/XHorizontalScrollArea.hpp
         wrapper/include/widgets/XHoverPlane.hpp
         wrapper/include/widgets/XPreview.hpp
-        wrapper/include/wrapper.hpp
+        wrapper/include/global_uniforms.hpp
         wrapper/src/widgets/XHoverPlane.cpp
         wrapper/src/widgets/XPreview.cpp
-        wrapper/src/wrapper.cpp
+        wrapper/src/global_uniforms.cpp
         main.cpp
         readme.md
         .gitignore

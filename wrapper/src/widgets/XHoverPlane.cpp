@@ -2,7 +2,7 @@
 #include <widgets/XHoverPlane.hpp>
 #include <widgets/XPreview.hpp>
 #include <interface_database/sql_wrapper.hpp>
-#include <wrapper.hpp>
+#include <global_uniforms.hpp>
 #include <QLineEdit>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
