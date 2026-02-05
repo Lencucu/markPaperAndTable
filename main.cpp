@@ -1,4 +1,4 @@
-#include <wrapper.hpp>
+//#include <wrapper.hpp> // 模糊记忆：貌似是改向了global_uniforms，为了统一全局共享资源的貌似
 #include <widgets/XHoverPlane.hpp>
 
 #include <QApplication>
