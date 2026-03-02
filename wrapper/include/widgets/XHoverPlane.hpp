@@ -25,17 +25,7 @@ private:
     QHBoxLayout* previews;
 
 protected:
-    bool event(QEvent *e) override {
-        if (e->type() == QEvent::WindowDeactivate) {
-            qDebug() << "窗口及子控件失去焦点，脱离激活";
-            setWindowOpacity(0.5);
-        }
-        if (e->type() == QEvent::WindowActivate) {
-            qDebug() << "窗口获得焦点";
-            setWindowOpacity(1);
-        }
-        return QWidget::event(e);
-    }
+    bool event(QEvent *e) override;
 
     void paintEvent(QPaintEvent*) override
     {

@@ -2,7 +2,7 @@
 #include <QTextBrowser>
 #include <QResizeEvent>
 
-
+// default:16x12cm
 XPreview::XPreview(QWidget* parent):QWidget(parent)
 {	textbrowser = new QTextBrowser{this};
 }

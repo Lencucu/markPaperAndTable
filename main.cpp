@@ -29,14 +29,17 @@ int main(int argc, char *argv[])
 
     XHoverPlane w;
     w.show();
-    w.setWindowOpacity(0.5);
+    w.setWindowOpacity(0.05);
 
     QHotkey hotkey(QKeySequence("Ctrl+Shift+Alt+Z"), true, &a); //The hotkey will be automatically registered
 //    qDebug() << "Is registered:" << hotkey.isRegistered();
 
     QObject::connect(&hotkey, &QHotkey::activated, qApp, [&](){
         if (w.isVisible()) {
-            w.hide();
+            if(w.isActiveWindow())
+                w.hide();
+            else
+                w.activateWindow();
         } else {
             w.show();
             w.activateWindow();

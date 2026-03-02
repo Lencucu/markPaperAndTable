@@ -10,6 +10,8 @@
 #include <QScreen>
 #include <QRect>
 #include <QSpacerItem>
+#include <QGuiApplication>
+#include <QString>
 
 #include <windows.h>
 #include <shellapi.h>
@@ -48,16 +50,21 @@ XHoverPlane::XHoverPlane(QWidget *parent)
         "QScrollArea {"
         " border-top: 0px;"
         " border-bottom: 0px;"
-        " border-left: 2px solid brown;"
-        " border-right: 2px solid brown;"
+        " border-left: 1px solid #D2F0E0;"
+        " border-right: 1px solid #D2F0E0;"
         "}"
     );
 
-    QRect screenGeometry = QApplication::primaryScreen()->geometry();
-    int screenWidth = screenGeometry.width();
-    int screenHeight = screenGeometry.height();
+    // QRect screenGeometry = QApplication::primaryScreen()->geometry();
+    // int screenWidth = screenGeometry.width();
+    // int screenHeight = screenGeometry.height();
 
-    int margin = 10;
+    // int margin = 10;
+    // width:344.443871|height:193.749677|2.690968
+    int screenWidth = physicalSize2pix(344.443871);
+    int screenHeight = physicalSize2pix(193.749677);
+
+    int margin = physicalSize2pix(2.690968);
     move(screenWidth - screenWidth/3 - 2*margin,
          screenHeight - screenHeight/4 - /*2*margin -*/ getTaskbarHeight());// * LC_mark * 获取到的任务栏高度偏长
     resize(screenWidth/3, screenHeight/4);
@@ -80,8 +87,17 @@ XHoverPlane::XHoverPlane(QWidget *parent)
         // ** matchTextAndProcess(text.c_str(),fileBoxs,reaction(float score,size_t line,size_t column,size_t length));
     });
     searchBar->setFixedHeight(screenHeight/4/6);
+    // QScreen *screen = QGuiApplication::primaryScreen();
+    // searchBar->setText(QString::asprintf(
+    //                        "width:%f|height:%f|%f",
+    //                        pix2physicalSize(screenWidth),
+    //                        pix2physicalSize(screenHeight),
+    //                        pix2physicalSize(10)
+    //                    ));
 
     XHorizontalScrollArea* scrollArea = new XHorizontalScrollArea;
+    GradientOverlay* gradientoverlay = new GradientOverlay{scrollArea};
+    scrollArea->gradientoverlay = gradientoverlay;
     scrollArea->setWidgetResizable(true);// 不知道怎么回事，好像不加这一条或者说是false的情况时视口不会追踪widget，即没内容，而且只会在widget resize时才会更新视口一样，所以默认还是加上，不知道不加和加到底有什么区别
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 总显示
     // scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);   // 默认，超出才显示
@@ -108,8 +124,29 @@ XHoverPlane::XHoverPlane(QWidget *parent)
         preview->textbrowser->setMarkdown(globalresource::papers.back().content());
         preview->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
         previews->addWidget(preview);
+        XPreview* preview2 = new XPreview;
+        preview2->textbrowser->setMarkdown(globalresource::papers.back().content());
+        preview2->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
+        previews->addWidget(preview2);
     });
 }
+
+
+bool XHoverPlane::event(QEvent *e){
+    if (e->type() == QEvent::WindowDeactivate) {
+        qDebug() << "窗口及子控件失去焦点，脱离激活";
+        setWindowOpacity(0.05);
+        enableMousePassthrough(((HWND)winId()));// 或许设置下延迟多久以后再贯穿更好点
+    }
+    if (e->type() == QEvent::WindowActivate) {
+        qDebug() << "窗口获得焦点";
+        setWindowOpacity(1);
+        searchBar->setFocus();
+        disableMousePassthrough(((HWND)winId()));
+    }
+    return QWidget::event(e);
+}
+
 
 XHoverPlane::~XHoverPlane()
 {
