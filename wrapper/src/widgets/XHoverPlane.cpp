@@ -3,7 +3,6 @@
 #include <widgets/XPreview.hpp>
 #include <interface_database/sql_wrapper.hpp>
 #include <global_uniforms.hpp>
-#include <QLineEdit>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QApplication>
@@ -40,21 +39,6 @@ XHoverPlane::XHoverPlane(QWidget *parent)
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);
     setObjectName("mpt");
-    setStyleSheet(
-        "#mpt, #previews {"
-        " background-color: #D0E8D8;"
-        "}"
-        "QLineEdit, QTextBrowser {"
-        " border: none;"
-        "}"
-        "QScrollArea {"
-        " border-top: 0px;"
-        " border-bottom: 0px;"
-        " border-left: 1px solid #D2F0E0;"
-        " border-right: 1px solid #D2F0E0;"
-        "}"
-    );
-
     // QRect screenGeometry = QApplication::primaryScreen()->geometry();
     // int screenWidth = screenGeometry.width();
     // int screenHeight = screenGeometry.height();
@@ -65,6 +49,27 @@ XHoverPlane::XHoverPlane(QWidget *parent)
     int screenHeight = physicalSize2pix(193.749677);
 
     int margin = physicalSize2pix(2.690968);
+    setStyleSheet(QString::asprintf(
+        "#mpt, #previews {"
+        " background-color: #D0E8D8;"
+        "}"
+        "QLineEdit {"
+        " border: none;"
+        " margin-left: %dpx;"
+        " margin-right: %dpx;"
+        "}"
+        "QTextBrowser {"
+        " border: none;"
+        "}"
+        "QScrollArea {"
+        " border-top: 0px;"
+        " border-bottom: 0px;"
+        " border-left: 1px solid #D2F0E0;"
+        " border-right: 1px solid #D2F0E0;"
+        "}",
+        margin,margin
+    ));
+
     move(screenWidth - screenWidth/3 - 2*margin,
          screenHeight - screenHeight/4 - /*2*margin -*/ getTaskbarHeight());// * LC_mark * 获取到的任务栏高度偏长
     resize(screenWidth/3, screenHeight/4);
@@ -75,7 +80,7 @@ XHoverPlane::XHoverPlane(QWidget *parent)
     也就是说scrollArea的大小就是它对应的viewport的大小，当对应控件超出范围后就会出现滚动条
     */
 
-    searchBar = new QLineEdit;
+    searchBar = new SearchBar;
     // ** lambda reaction
     /*
         new preview() or repalce
@@ -97,6 +102,7 @@ XHoverPlane::XHoverPlane(QWidget *parent)
 
     XHorizontalScrollArea* scrollArea = new XHorizontalScrollArea;
     GradientOverlay* gradientoverlay = new GradientOverlay{scrollArea};
+    gradientoverlay->radio = double(margin)*3/screenWidth;
     scrollArea->gradientoverlay = gradientoverlay;
     scrollArea->setWidgetResizable(true);// 不知道怎么回事，好像不加这一条或者说是false的情况时视口不会追踪widget，即没内容，而且只会在widget resize时才会更新视口一样，所以默认还是加上，不知道不加和加到底有什么区别
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 总显示
@@ -111,13 +117,14 @@ XHoverPlane::XHoverPlane(QWidget *parent)
     scrollArea->setWidget(container);
 
     QVBoxLayout* vLayout = new QVBoxLayout{this};
-    vLayout->setContentsMargins(margin, margin, margin, margin);//left, top, right, bottom
+    vLayout->setContentsMargins(0, margin, 0, margin);//left, top, right, bottom
     vLayout->setSpacing(0);
     vLayout->addWidget(searchBar);
     vLayout->addSpacerItem(new QSpacerItem(0,margin,QSizePolicy::Expanding,QSizePolicy::Fixed));
     vLayout->addWidget(scrollArea);
 
     vLayout->activate();
+    previews->addSpacerItem(new QSpacerItem(margin,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
     query_sqlite_db([&](QString& name){
         globalresource::papers.emplace_back(name);
         XPreview* preview = new XPreview;
@@ -129,6 +136,7 @@ XHoverPlane::XHoverPlane(QWidget *parent)
         preview2->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
         previews->addWidget(preview2);
     });
+    previews->addSpacerItem(new QSpacerItem(margin,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
 }
 
 

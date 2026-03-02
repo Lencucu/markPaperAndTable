@@ -1,7 +1,6 @@
 #ifndef XHOVERPLANE_HPP
 #define XHOVERPLANE_HPP
 
-class QLineEdit;
 class QHBoxLayout;
 
 #include <QEvent>
@@ -10,6 +9,36 @@ class QHBoxLayout;
 #include <QPaintEvent>
 #include <QPainter>
 #include <QColor>
+#include <QLineEdit>
+
+
+class SearchBar : public QLineEdit {
+    Q_OBJECT
+public:
+    using QLineEdit::QLineEdit;
+    SearchBar(QWidget* parent = nullptr) : QLineEdit(parent) {
+        connect(this, &SearchBar::committedTextChanged, this, [this](const QString &){
+            setStyleSheet("background-color: #D0E8D8;");
+        });
+    }
+
+protected:
+    void inputMethodEvent(QInputMethodEvent *event) override {
+        // event->commitString() 是已经确认的文字
+        if (!event->commitString().isEmpty()) {
+            emit committedTextChanged(event->commitString());
+        }
+        QLineEdit::inputMethodEvent(event);
+    }
+    // 普通键盘输入（英文、数字、标点）
+    void keyPressEvent(QKeyEvent *event) override {
+        QLineEdit::keyPressEvent(event); // 先让 QLineEdit 处理输入
+        emit committedTextChanged(text());
+    }
+
+signals:
+    void committedTextChanged(const QString &text);
+};
 
 
 class XHoverPlane : public QWidget
@@ -21,7 +50,7 @@ public:
     ~XHoverPlane();
 
 private:
-    QLineEdit* searchBar;
+    SearchBar* searchBar;
     QHBoxLayout* previews;
 
 protected:

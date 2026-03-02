@@ -9,6 +9,7 @@
 
 class GradientOverlay : public QWidget {
 public:
+    double radio = 0.04;
     GradientOverlay(QWidget* parent = nullptr) : QWidget(parent) {
         setAttribute(Qt::WA_TransparentForMouseEvents);
         setAttribute(Qt::WA_NoSystemBackground);
@@ -20,8 +21,8 @@ protected:
         QPainter p(this);
         QLinearGradient grad(0, 0, width(), 0);  // 水平渐变
         grad.setColorAt(0.01, QColor(0xD0, 0xE8, 0xD8, 255));   // 不透明
-        grad.setColorAt(0.04, QColor(0, 0, 0, 0));     // 全透明
-        grad.setColorAt(0.96, QColor(0, 0, 0, 0));     // 全透明
+        grad.setColorAt(radio, QColor(0, 0, 0, 0));     // 全透明
+        grad.setColorAt(1-radio, QColor(0, 0, 0, 0));     // 全透明
         grad.setColorAt(0.99, QColor(0xD0, 0xE8, 0xD8, 255));   // 不透明
         p.fillRect(rect(), grad);
     }

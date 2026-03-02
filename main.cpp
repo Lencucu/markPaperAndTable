@@ -9,7 +9,7 @@
 #include <QAction>
 
 
-int main(int argc, char *argv[])
+int program(int argc, char *argv[])
 {   QApplication a(argc, argv);
 //    globalresource.query_sqlite_db();
 
@@ -47,4 +47,21 @@ int main(int argc, char *argv[])
     });
 
     return a.exec();
+}
+
+
+#include <windows.h>
+
+int main(int argc, char *argv[]) {
+    HANDLE hMutex = CreateMutexA(NULL, TRUE, "Global\\MyUniqueAppName");
+
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        return 0; // 已有实例
+    }
+
+    // 主程序逻辑
+    program(argc, argv);
+
+    ReleaseMutex(hMutex);
+    CloseHandle(hMutex);
 }
