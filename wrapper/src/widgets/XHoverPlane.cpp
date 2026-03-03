@@ -137,20 +137,43 @@ XHoverPlane::XHoverPlane(QWidget *parent)
         previews->addWidget(preview2);
     });
     previews->addSpacerItem(new QSpacerItem(margin,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
+
+    effect = new QGraphicsOpacityEffect(this);
+    setGraphicsEffect(effect);
+    qDebug() << "opacity" << effect->opacity();
+    anim = new QPropertyAnimation(effect, "opacity", this);
+    anim->setEasingCurve(QEasingCurve::OutCubic);
 }
 
 
 bool XHoverPlane::event(QEvent *e){
     if (e->type() == QEvent::WindowDeactivate) {
         qDebug() << "窗口及子控件失去焦点，脱离激活";
-        setWindowOpacity(0.05);
-        enableMousePassthrough(((HWND)winId()));// 或许设置下延迟多久以后再贯穿更好点
+
+        anim->stop();
+        anim->setDuration(1000);
+        anim->setStartValue(effect->opacity());
+        anim->setEndValue(0.05);
+        QObject::connect(anim, &QPropertyAnimation::finished, [&]() {
+            // 动画结束后的操作
+            if(effect->opacity()<0.5)
+                enableMousePassthrough(((HWND)winId()));// 或许设置下延迟多久以后再贯穿更好点
+        });
+        anim->start();
+        // setWindowOpacity(0.05);
     }
     if (e->type() == QEvent::WindowActivate) {
         qDebug() << "窗口获得焦点";
-        setWindowOpacity(1);
-        searchBar->setFocus();
+        qDebug() << "opacity" << effect->opacity();
+
         disableMousePassthrough(((HWND)winId()));
+        searchBar->setFocus();
+        anim->stop();
+        anim->setDuration(300);
+        anim->setStartValue(effect->opacity());
+        anim->setEndValue(1);
+        anim->start();
+        // setWindowOpacity(1);
     }
     return QWidget::event(e);
 }

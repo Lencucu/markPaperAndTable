@@ -29,7 +29,23 @@ int program(int argc, char *argv[])
 
     XHoverPlane w;
     w.show();
-    w.setWindowOpacity(0.05);
+    QObject::connect(tray, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason){
+        if (reason == QSystemTrayIcon::Trigger) { 
+            // 普通点击（单击）处理
+            qDebug() << "托盘图标被点击";
+            if (w.isVisible()) {
+                if(!w.isActiveWindow())
+                    w.activateWindow();
+            } else {
+                w.effect->setOpacity(1);
+                w.show();
+                w.activateWindow();
+            }
+        }
+        // 如果需要，也可以处理双击：
+        // else if (reason == QSystemTrayIcon::DoubleClick) { ... }
+    });
+    // w.setWindowOpacity(0.05);
 
     QHotkey hotkey(QKeySequence("Ctrl+Shift+Alt+Z"), true, &a); //The hotkey will be automatically registered
 //    qDebug() << "Is registered:" << hotkey.isRegistered();
@@ -41,6 +57,7 @@ int program(int argc, char *argv[])
             else
                 w.activateWindow();
         } else {
+            w.effect->setOpacity(1);
             w.show();
             w.activateWindow();
         }

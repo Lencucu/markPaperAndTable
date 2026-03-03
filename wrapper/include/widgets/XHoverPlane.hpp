@@ -2,6 +2,7 @@
 #define XHOVERPLANE_HPP
 
 class QHBoxLayout;
+class QPropertyAnimation;
 
 #include <QEvent>
 #include <QTextBrowser>
@@ -10,6 +11,7 @@ class QHBoxLayout;
 #include <QPainter>
 #include <QColor>
 #include <QLineEdit>
+#include <QGraphicsOpacityEffect>
 
 
 class SearchBar : public QLineEdit {
@@ -18,7 +20,7 @@ public:
     using QLineEdit::QLineEdit;
     SearchBar(QWidget* parent = nullptr) : QLineEdit(parent) {
         connect(this, &SearchBar::committedTextChanged, this, [this](const QString &){
-            setStyleSheet("background-color: #D0E8D8;");
+            // setStyleSheet("background-color: #D0E8D8;");
         });
     }
 
@@ -49,9 +51,11 @@ public:
     XHoverPlane(QWidget *parent = nullptr);
     ~XHoverPlane();
 
+    QGraphicsOpacityEffect* effect;
 private:
     SearchBar* searchBar;
     QHBoxLayout* previews;
+    QPropertyAnimation* anim;
 
 protected:
     bool event(QEvent *e) override;

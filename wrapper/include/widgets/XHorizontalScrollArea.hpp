@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <QPainter>
 #include <QResizeEvent>
+#include <QPropertyAnimation>
 
 class GradientOverlay : public QWidget {
 public:
@@ -38,7 +39,13 @@ protected:
         // 获取滚轮滚动的角度
         int delta = event->angleDelta().y()*2/3; // 默认纵向滚动值
         // 用纵向滚轮值去滚动水平滚动条
-        horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta);
+        QPropertyAnimation* anim = new QPropertyAnimation(horizontalScrollBar(), "value");
+
+        anim->setDuration(300);
+        anim->setStartValue(horizontalScrollBar()->value());
+        anim->setEndValue(horizontalScrollBar()->value() - delta);   // 目标滚动位置
+        anim->setEasingCurve(QEasingCurve::OutCubic);
+        anim->start(QAbstractAnimation::DeleteWhenStopped);
         event->accept();
     }
     void resizeEvent(QResizeEvent *e) override {
