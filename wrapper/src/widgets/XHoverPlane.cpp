@@ -81,16 +81,20 @@ XHoverPlane::XHoverPlane(QWidget *parent)
     */
 
     searchBar = new SearchBar;
+    searchBar->w = screenWidth/3;
+    searchBar->h = screenHeight/4-3*margin-screenHeight/4/6;
+    searchBar->x = screenWidth - screenWidth/3 - 2*margin;
+    searchBar->y = screenHeight - screenHeight/4 - /*2*margin -*/ getTaskbarHeight() - margin/3 - searchBar->h;
     // ** lambda reaction
     /*
         new preview() or repalce
         focusOn()
         insertIntoPreviews()
     */
-    connect(searchBar, &QLineEdit::textEdited, this, [&](const QString &text){
-        // qDebug() << "用户编辑文本:" << text;
-        // ** matchTextAndProcess(text.c_str(),fileBoxs,reaction(float score,size_t line,size_t column,size_t length));
-    });
+    // connect(searchBar, &QLineEdit::textEdited, this, [&](const QString &text){
+    //     // qDebug() << "用户编辑文本:" << text;
+    //     // ** matchTextAndProcess(text.c_str(),fileBoxs,reaction(float score,size_t line,size_t column,size_t length));
+    // });
     searchBar->setFixedHeight(screenHeight/4/6);
     // QScreen *screen = QGuiApplication::primaryScreen();
     // searchBar->setText(QString::asprintf(
