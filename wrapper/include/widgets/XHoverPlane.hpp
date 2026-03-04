@@ -3,6 +3,7 @@
 
 class QHBoxLayout;
 class QPropertyAnimation;
+class XHorizontalScrollArea;
 
 #include <QEvent>
 #include <QTextBrowser>
@@ -17,26 +18,10 @@ class QPropertyAnimation;
 class SearchBar : public QLineEdit {
     Q_OBJECT
 public:
-    QLineEdit* floatbar = nullptr;
-    int x,y,w,h;
+    XHorizontalScrollArea* scrollArea = nullptr;
+    int x,y,w,h,margin;
     using QLineEdit::QLineEdit;
-    SearchBar(QWidget* parent = nullptr) : QLineEdit(parent) {
-        connect(this, &SearchBar::committedTextChanged, this, [this](const QString &){
-            // setStyleSheet("background-color: #D0E8D8;");
-            if(!floatbar){
-                floatbar = new QLineEdit;
-                floatbar->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
-                floatbar->setAttribute(Qt::WA_TranslucentBackground);
-                floatbar->resize(w,h);
-                floatbar->move(x,y);
-                floatbar->setStyleSheet(
-                    "background-color: #FFF;"
-                    "border: none;"
-                );
-            }
-            floatbar->show();
-        });
-    }
+    SearchBar(QWidget* parent = nullptr);
 
 protected:
     void inputMethodEvent(QInputMethodEvent *event) override {

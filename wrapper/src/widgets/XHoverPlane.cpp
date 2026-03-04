@@ -15,6 +15,66 @@
 #include <windows.h>
 #include <shellapi.h>
 
+SearchBar::SearchBar(QWidget* parent) : QLineEdit(parent) {
+    connect(this, &SearchBar::committedTextChanged, this, [this](const QString &){
+        // setStyleSheet("background-color: #D0E8D8;");
+        if(!scrollArea){
+            // floatbar = new QLineEdit;
+            // floatbar->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+            // floatbar->setAttribute(Qt::WA_TranslucentBackground);
+            // floatbar->resize(w,h);
+            // floatbar->move(x,y);
+            // floatbar->setStyleSheet(
+            //     "background-color: #FFF;"
+            //     "border: none;"
+            // );
+            scrollArea = new XHorizontalScrollArea;
+            scrollArea->setWidgetResizable(true);// 不知道怎么回事，好像不加这一条或者说是false的情况时视口不会追踪widget，即没内容，而且只会在widget resize时才会更新视口一样，所以默认还是加上，不知道不加和加到底有什么区别
+            scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 总显示
+            // scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);   // 默认，超出才显示
+            scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            QWidget* container = new QWidget;
+            container->setObjectName("previews");
+            container->setAttribute(Qt::WA_TranslucentBackground);
+            QHBoxLayout* previews = new QHBoxLayout{container};
+            previews->setAlignment(Qt::AlignLeft);
+            previews->setSpacing(margin);
+            previews->setContentsMargins(0,0,0,0);
+            scrollArea->setWidget(container);
+            scrollArea->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+            scrollArea->setAttribute(Qt::WA_TranslucentBackground);
+            scrollArea->resize(w,h);
+            scrollArea->move(x,y);
+            scrollArea->setStyleSheet(QString::asprintf(
+                "QTextBrowser {"
+                " border: none;"
+                "}"
+                "QScrollArea {"
+                " border-top: 0px;"
+                " border-bottom: 0px;"
+                " border-left: 1px solid #D2F0E0;"
+                " border-right: 1px solid #D2F0E0;"
+                "}"
+            ));
+
+            previews->addSpacerItem(new QSpacerItem(margin,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
+            query_sqlite_db([&](QString& name){
+                globalresource::papers.emplace_back(name);
+                XPreview* preview = new XPreview;
+                preview->textbrowser->setMarkdown(globalresource::papers.back().content());
+                preview->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
+                previews->addWidget(preview);
+                XPreview* preview2 = new XPreview;
+                preview2->textbrowser->setMarkdown(globalresource::papers.back().content());
+                preview2->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
+                previews->addWidget(preview2);
+            });
+            previews->addSpacerItem(new QSpacerItem(margin,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
+        }
+        scrollArea->show();
+    });
+}
+
 
 int getTaskbarHeight() {
     APPBARDATA abd{};
@@ -84,7 +144,8 @@ XHoverPlane::XHoverPlane(QWidget *parent)
     searchBar->w = screenWidth/3;
     searchBar->h = screenHeight/4-3*margin-screenHeight/4/6;
     searchBar->x = screenWidth - screenWidth/3 - 2*margin;
-    searchBar->y = screenHeight - screenHeight/4 - /*2*margin -*/ getTaskbarHeight() - margin/3 - searchBar->h;
+    searchBar->y = screenHeight - screenHeight/4 - /*2*margin -*/ getTaskbarHeight() - margin - searchBar->h;
+    searchBar->margin = margin;
     // ** lambda reaction
     /*
         new preview() or repalce

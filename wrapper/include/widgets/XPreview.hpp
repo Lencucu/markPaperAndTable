@@ -10,6 +10,7 @@ class XPreview : public QWidget{
     Q_OBJECT
 
     friend class XHoverPlane;
+    friend class SearchBar;
 private:
     QTextBrowser* textbrowser=nullptr;
 

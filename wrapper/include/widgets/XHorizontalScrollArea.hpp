@@ -51,8 +51,12 @@ protected:
     void resizeEvent(QResizeEvent *e) override {
         QSize size = e->size();
         size.setWidth(size.width()+2);
-        if(gradientoverlay) gradientoverlay->resize(size);
+        resizeOverlay(size);
         QScrollArea::resizeEvent(e);
+    }
+public:
+    void resizeOverlay(QSize size){
+        if(gradientoverlay) gradientoverlay->resize(size);
     }
 };
 
