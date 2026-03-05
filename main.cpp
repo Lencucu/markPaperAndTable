@@ -8,6 +8,8 @@
 #include <QMenu>
 #include <QAction>
 
+extern XHoverPlane* main_area;
+extern bool state_main_is_active;
 
 int program(int argc, char *argv[])
 {   QApplication a(argc, argv);
@@ -28,7 +30,9 @@ int program(int argc, char *argv[])
 
 
     XHoverPlane w;
+    main_area = &w;
     w.show();
+    state_main_is_active = true;
     QObject::connect(tray, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason){
         if (reason == QSystemTrayIcon::Trigger) { 
             // 普通点击（单击）处理

@@ -15,20 +15,66 @@
 #include <windows.h>
 #include <shellapi.h>
 
+bool state_float_is_active = false;
+bool state_main_is_active = false;
+XHorizontalScrollArea* float_area = nullptr;
+XHoverPlane* main_area = nullptr;
+
+XHorizontalScrollArea::XHorizontalScrollArea(QWidget* parent) : QScrollArea(parent) {}
+void XHorizontalScrollArea::connect4float(){
+    QObject::connect(this,&XHorizontalScrollArea::ready2deactivate,[](){
+        if(state_float_is_active||state_main_is_active) return;
+        if(float_area) float_area->hide_diy();
+        if(main_area) main_area->hide_diy();
+    });
+    QObject::connect(this,&XHorizontalScrollArea::try2activate,[](){
+        if(state_float_is_active||state_main_is_active){
+            qDebug()<<"?";
+            if(float_area) float_area->show_diy();
+            if(main_area) main_area->show_diy();
+        }
+    });
+}
+
+bool XHorizontalScrollArea::event(QEvent *e){
+    if (e->type() == QEvent::WindowDeactivate&&is_float) {
+        state_float_is_active = false;
+        emit ready2deactivate();
+    }
+    if (e->type() == QEvent::WindowActivate&&is_float) {
+        state_float_is_active = true;
+        emit try2activate();
+    }
+    return QWidget::event(e);
+}
+
+void XHorizontalScrollArea::show_diy(){
+    disableMousePassthrough(((HWND)winId()));
+    if(anim_float){
+        anim_float->stop();
+        anim_float->setDuration(300);
+        anim_float->setStartValue(windowOpacity());
+        anim_float->setEndValue(1);
+        anim_float->start();
+    }
+}
+void XHorizontalScrollArea::hide_diy(){
+    if(anim_float){
+        anim_float->stop();
+        anim_float->setDuration(1000);
+        anim_float->setStartValue(windowOpacity());
+        anim_float->setEndValue(0.05);
+        anim_float->start();
+    }
+}
+
 SearchBar::SearchBar(QWidget* parent) : QLineEdit(parent) {
     connect(this, &SearchBar::committedTextChanged, this, [this](const QString &){
-        // setStyleSheet("background-color: #D0E8D8;");
         if(!scrollArea){
-            // floatbar = new QLineEdit;
-            // floatbar->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
-            // floatbar->setAttribute(Qt::WA_TranslucentBackground);
-            // floatbar->resize(w,h);
-            // floatbar->move(x,y);
-            // floatbar->setStyleSheet(
-            //     "background-color: #FFF;"
-            //     "border: none;"
-            // );
             scrollArea = new XHorizontalScrollArea;
+            float_area = scrollArea;
+            scrollArea->is_float = true;
+            scrollArea->connect4float();
             scrollArea->setWidgetResizable(true);// 不知道怎么回事，好像不加这一条或者说是false的情况时视口不会追踪widget，即没内容，而且只会在widget resize时才会更新视口一样，所以默认还是加上，不知道不加和加到底有什么区别
             scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // 总显示
             // scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);   // 默认，超出才显示
@@ -57,7 +103,7 @@ SearchBar::SearchBar(QWidget* parent) : QLineEdit(parent) {
                 "}"
             ));
 
-            previews->addSpacerItem(new QSpacerItem(margin,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
+            previews->addSpacerItem(new QSpacerItem(margin/3,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
             query_sqlite_db([&](QString& name){
                 globalresource::papers.emplace_back(name);
                 XPreview* preview = new XPreview;
@@ -69,9 +115,22 @@ SearchBar::SearchBar(QWidget* parent) : QLineEdit(parent) {
                 preview2->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
                 previews->addWidget(preview2);
             });
-            previews->addSpacerItem(new QSpacerItem(margin,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
+            previews->addSpacerItem(new QSpacerItem(margin/3,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
+
+            scrollArea->anim_float = new QPropertyAnimation(scrollArea, "windowOpacity", scrollArea);
+            scrollArea->anim_float->setEasingCurve(QEasingCurve::OutCubic);
+            QObject::connect(scrollArea->anim_float, &QPropertyAnimation::finished, [&]() {
+                // 动画结束后的操作
+                if(scrollArea->windowOpacity()<0.5){
+                    enableMousePassthrough(((HWND)scrollArea->winId()));// 或许设置下延迟多久以后再贯穿更好点
+                }
+            });
         }
-        scrollArea->show();
+        else{
+            scrollArea->show();
+            scrollArea->show_diy();
+            state_float_is_active = true;
+        }
     });
 }
 
@@ -96,6 +155,17 @@ int getTaskbarHeight() {
 XHoverPlane::XHoverPlane(QWidget *parent)
     : QWidget(parent)
 {
+    QObject::connect(this,&XHoverPlane::ready2deactivate,[](){
+        if(state_float_is_active||state_main_is_active) return;
+        if(float_area) float_area->hide_diy();
+        if(main_area) main_area->hide_diy();
+    });
+    QObject::connect(this,&XHoverPlane::try2activate,[](){
+        if(state_float_is_active||state_main_is_active){
+            if(float_area) float_area->show_diy();
+            if(main_area) main_area->show_diy();
+        }
+    });
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);
     setObjectName("mpt");
@@ -205,40 +275,40 @@ XHoverPlane::XHoverPlane(QWidget *parent)
 
     effect = new QGraphicsOpacityEffect(this);
     setGraphicsEffect(effect);
-    qDebug() << "opacity" << effect->opacity();
     anim = new QPropertyAnimation(effect, "opacity", this);
     anim->setEasingCurve(QEasingCurve::OutCubic);
+    QObject::connect(anim, &QPropertyAnimation::finished, [=]() {
+        if(effect->opacity()<0.5)
+            enableMousePassthrough(((HWND)this->winId()));// 或许设置下延迟多久以后再贯穿更好点
+    });
 }
 
+void XHoverPlane::show_diy(){
+    disableMousePassthrough(((HWND)winId()));
+    searchBar->setFocus();
+    anim->stop();
+    anim->setDuration(300);
+    anim->setStartValue(effect->opacity());
+    anim->setEndValue(1);
+    anim->start();
+    if(searchBar->scrollArea) searchBar->scrollArea->show_diy();
+}
+void XHoverPlane::hide_diy(){
+    anim->stop();
+    anim->setDuration(1000);
+    anim->setStartValue(effect->opacity());
+    anim->setEndValue(0.05);
+    anim->start();
+}
 
 bool XHoverPlane::event(QEvent *e){
     if (e->type() == QEvent::WindowDeactivate) {
-        qDebug() << "窗口及子控件失去焦点，脱离激活";
-
-        anim->stop();
-        anim->setDuration(1000);
-        anim->setStartValue(effect->opacity());
-        anim->setEndValue(0.05);
-        QObject::connect(anim, &QPropertyAnimation::finished, [&]() {
-            // 动画结束后的操作
-            if(effect->opacity()<0.5)
-                enableMousePassthrough(((HWND)winId()));// 或许设置下延迟多久以后再贯穿更好点
-        });
-        anim->start();
-        // setWindowOpacity(0.05);
+        state_main_is_active = false;
+        emit ready2deactivate();
     }
     if (e->type() == QEvent::WindowActivate) {
-        qDebug() << "窗口获得焦点";
-        qDebug() << "opacity" << effect->opacity();
-
-        disableMousePassthrough(((HWND)winId()));
-        searchBar->setFocus();
-        anim->stop();
-        anim->setDuration(300);
-        anim->setStartValue(effect->opacity());
-        anim->setEndValue(1);
-        anim->start();
-        // setWindowOpacity(1);
+        state_main_is_active = true;
+        emit try2activate();
     }
     return QWidget::event(e);
 }

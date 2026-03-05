@@ -46,15 +46,21 @@ class XHoverPlane : public QWidget
 {
     Q_OBJECT
 
+signals:
+    void ready2deactivate();
+    void try2activate();
+
 public:
     XHoverPlane(QWidget *parent = nullptr);
     ~XHoverPlane();
 
-    QGraphicsOpacityEffect* effect;
+    void show_diy();
+    void hide_diy();
+    QGraphicsOpacityEffect* effect = nullptr;
+    QPropertyAnimation* anim = nullptr;
 private:
     SearchBar* searchBar;
     QHBoxLayout* previews;
-    QPropertyAnimation* anim;
 
 protected:
     bool event(QEvent *e) override;

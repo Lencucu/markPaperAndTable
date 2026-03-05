@@ -1,12 +1,22 @@
 #ifndef XHORIZONTALSCROLLAREA_HPP
 #define XHORIZONTALSCROLLAREA_HPP
 
+class QGraphicsOpacityEffect;
+class QPropertyAnimation;
+class XHorizontalScrollArea;
+class XHoverPlane;
+
 #include <QScrollArea>
 #include <QWheelEvent>
 #include <QScrollBar>
 #include <QPainter>
 #include <QResizeEvent>
 #include <QPropertyAnimation>
+
+extern bool state_float_is_active;
+extern bool state_main_is_active;
+extern XHorizontalScrollArea* float_area;
+extern XHoverPlane* main_area;
 
 class GradientOverlay : public QWidget {
 public:
@@ -30,9 +40,18 @@ protected:
 };
 
 class XHorizontalScrollArea : public QScrollArea {
+    Q_OBJECT
+signals:
+    void ready2deactivate();
+    void try2activate();
+
 public:
     GradientOverlay *gradientoverlay = nullptr;
-    XHorizontalScrollArea(QWidget* parent = nullptr) : QScrollArea(parent) {}
+    QGraphicsOpacityEffect* effect_float = nullptr;
+    QPropertyAnimation* anim_float = nullptr;
+    bool is_float = false;
+    XHorizontalScrollArea(QWidget* parent = nullptr);
+    void connect4float();
 
 protected:
     void wheelEvent(QWheelEvent* event) override {
@@ -54,7 +73,10 @@ protected:
         resizeOverlay(size);
         QScrollArea::resizeEvent(e);
     }
+    bool event(QEvent *e) override;
 public:
+    void show_diy();
+    void hide_diy();
     void resizeOverlay(QSize size){
         if(gradientoverlay) gradientoverlay->resize(size);
     }
