@@ -20,6 +20,13 @@ bool state_main_is_active = false;
 XHorizontalScrollArea* float_area = nullptr;
 XHoverPlane* main_area = nullptr;
 
+
+
+
+
+
+
+
 XHorizontalScrollArea::XHorizontalScrollArea(QWidget* parent) : QScrollArea(parent) {}
 void XHorizontalScrollArea::connect4float(){
     QObject::connect(this,&XHorizontalScrollArea::ready2deactivate,[](){
@@ -29,7 +36,6 @@ void XHorizontalScrollArea::connect4float(){
     });
     QObject::connect(this,&XHorizontalScrollArea::try2activate,[](){
         if(state_float_is_active||state_main_is_active){
-            qDebug()<<"?";
             if(float_area) float_area->show_diy();
             if(main_area) main_area->show_diy();
         }
@@ -68,6 +74,13 @@ void XHorizontalScrollArea::hide_diy(){
     }
 }
 
+
+
+
+
+
+
+
 SearchBar::SearchBar(QWidget* parent) : QLineEdit(parent) {
     connect(this, &SearchBar::committedTextChanged, this, [this](const QString &){
         if(!scrollArea){
@@ -104,6 +117,8 @@ SearchBar::SearchBar(QWidget* parent) : QLineEdit(parent) {
             ));
 
             previews->addSpacerItem(new QSpacerItem(margin/3,0,QSizePolicy::Fixed,QSizePolicy::Expanding));
+
+
             query_sqlite_db([&](QString& name){
                 globalresource::papers.emplace_back(name);
                 XPreview* preview = new XPreview;
@@ -111,7 +126,9 @@ SearchBar::SearchBar(QWidget* parent) : QLineEdit(parent) {
                 preview->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
                 previews->addWidget(preview);
                 XPreview* preview2 = new XPreview;
+
                 preview2->textbrowser->setMarkdown(globalresource::papers.back().content());
+
                 preview2->setFixedSize(scrollArea->height()*4/3,scrollArea->height());
                 previews->addWidget(preview2);
             });
@@ -135,6 +152,12 @@ SearchBar::SearchBar(QWidget* parent) : QLineEdit(parent) {
 }
 
 
+
+
+
+
+
+
 int getTaskbarHeight() {
     APPBARDATA abd{};
     abd.cbSize = sizeof(APPBARDATA);
@@ -150,6 +173,8 @@ int getTaskbarHeight() {
     }
     return 0;
 }
+
+
 
 
 XHoverPlane::XHoverPlane(QWidget *parent)

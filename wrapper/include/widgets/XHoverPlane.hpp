@@ -15,6 +15,12 @@ class XHorizontalScrollArea;
 #include <QGraphicsOpacityEffect>
 
 
+
+
+
+
+
+
 class SearchBar : public QLineEdit {
     Q_OBJECT
 public:
@@ -40,6 +46,12 @@ protected:
 signals:
     void committedTextChanged(const QString &text);
 };
+
+
+
+
+
+
 
 
 class XHoverPlane : public QWidget
@@ -79,4 +91,12 @@ protected:
         painter.drawRoundedRect(rect(), 5, 7);
     }
 };
+
+
+
+
+
+
+
+
 #endif // XHOVERPLANE_HPP

@@ -1,5 +1,4 @@
 #include <widgets/XPreview.hpp>
-#include <QTextBrowser>
 #include <QResizeEvent>
 
 // default:16x12cm

@@ -18,6 +18,13 @@ extern bool state_main_is_active;
 extern XHorizontalScrollArea* float_area;
 extern XHoverPlane* main_area;
 
+
+
+
+
+
+
+
 class GradientOverlay : public QWidget {
 public:
     double radio = 0.04;
@@ -38,6 +45,9 @@ protected:
         p.fillRect(rect(), grad);
     }
 };
+
+
+
 
 class XHorizontalScrollArea : public QScrollArea {
     Q_OBJECT
@@ -81,6 +91,12 @@ public:
         if(gradientoverlay) gradientoverlay->resize(size);
     }
 };
+
+
+
+
+
+
 
 
 #endif // XHORIZONTALSCROLLAREA_HPP

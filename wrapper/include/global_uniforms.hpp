@@ -9,7 +9,7 @@ public:
     singlePaper(QString& name){
         QByteArray ba = dirAddTemplate.arg(name).toUtf8();
         read(ba.constData());
-        qDebug() << content();
+        // qDebug() << content();
     }
 };
 
@@ -22,6 +22,12 @@ extern qreal pix2physicalSize_inch(size_t l);
 namespace globalresource{
 	extern std::vector<singlePaper> papers;
 }
+
+
+
+
+
+
 
 
 #include <windows.h>

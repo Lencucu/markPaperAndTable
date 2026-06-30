@@ -1,5 +1,6 @@
 //#include <wrapper.hpp> // 模糊记忆：貌似是改向了global_uniforms，为了统一全局共享资源的貌似
 #include <widgets/XHoverPlane.hpp>
+#include <widgets/XPreview.hpp>
 
 #include <QApplication>
 #include <QHotkey>
@@ -36,7 +37,7 @@ int program(int argc, char *argv[])
     QObject::connect(tray, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason){
         if (reason == QSystemTrayIcon::Trigger) { 
             // 普通点击（单击）处理
-            qDebug() << "托盘图标被点击";
+            // qDebug() << "托盘图标被点击";
             if (w.isVisible()) {
                 if(!w.isActiveWindow())
                     w.activateWindow();
@@ -66,6 +67,10 @@ int program(int argc, char *argv[])
             w.activateWindow();
         }
     });
+
+
+    Card c;
+    c.show();
 
     return a.exec();
 }
