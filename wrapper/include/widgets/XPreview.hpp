@@ -216,9 +216,9 @@ protected:
 		}
 		if(ev->type()==QEvent::Wheel)// zoom paper
 		{	if (!static_cast<QWheelEvent*>(ev)->pixelDelta().isNull())
-				shrinkFactor+=qreal(static_cast<QWheelEvent*>(ev)->pixelDelta().y())/1000;
+				shrinkFactor-=qreal(static_cast<QWheelEvent*>(ev)->pixelDelta().y())/1000;
 			else
-				shrinkFactor+=qreal(static_cast<QWheelEvent*>(ev)->angleDelta().y())/1000;
+				shrinkFactor-=qreal(static_cast<QWheelEvent*>(ev)->angleDelta().y())/1000;
 			auto size=papersize.toSize()*shrinkFactor;
 			textEdit.resize(size);
 			mask.update();
