@@ -112,7 +112,8 @@ public:
 
 protected:
 	void resizeEvent(QResizeEvent *e) override// won't change textEdit size
-	{	QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
+	{	// 同步到textEdit
+		QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
 		textEdit.move(
 			qRound(center_point.x()-textEdit.size().toSizeF().width()*contentAnchor.x()),
 			qRound(center_point.y()-textEdit.size().toSizeF().height()*contentAnchor.y())
@@ -203,6 +204,7 @@ protected:
 		{	if(static_cast<QMouseEvent*>(ev)->buttons()&Qt::MiddleButton)
 			{	contentAnchor.rx()=(static_cast<QMouseEvent*>(ev)->position().x()-rect_bg.x())/rect_bg.width();
 				contentAnchor.ry()=(static_cast<QMouseEvent*>(ev)->position().y()-rect_bg.y())/rect_bg.height();
+				// 同步到textEdit
 				QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
 				textEdit.move(
 					qRound(center_point.x()-textEdit.size().toSizeF().width()*contentAnchor.x()),
