@@ -7,6 +7,7 @@
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlRecord>
 #include <functional>
+#include <QCoreApplication>
 
 
 void query_db() {
@@ -46,7 +47,7 @@ void query_sqlite_db(std::function<void(QString&)> callback) {
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "mpt_temp");
 
         // 设置数据库文件路径
-        db.setDatabaseName("recorder.db");  // 例如数据库文件在当前目录下叫 mpt.db
+        db.setDatabaseName(QCoreApplication::applicationDirPath()+"/recorder.db");  // 例如数据库文件在当前目录下叫 mpt.db
 
         if (!db.open()) {
             qDebug() << "无法连接数据库:" << db.lastError().text();

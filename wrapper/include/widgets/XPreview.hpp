@@ -29,26 +29,6 @@ extern qreal pix2physicalSize_inch(size_t l);
 
 
 
-class XPreview : public QWidget{
-	Q_OBJECT
-
-	friend class XHoverPlane;
-	friend class SearchBar;
-private:
-	QTextBrowser* textbrowser=nullptr;
-
-public:
-	XPreview(QWidget* parent=nullptr);
-	~XPreview(){};
-
-protected:
-	void resizeEvent(QResizeEvent *e) override;
-};
-
-
-
-
-
 
 
 
@@ -56,18 +36,17 @@ class Card : public QWidget{
 	Q_OBJECT
 	// 1.【!just click or mouse hover over specific time then get focus!】
 	// 【!when get foucs on, show a boarder and slowly disappear!】
-	// 2.【!double click show textBrowser!】
+	// 2.【#double click show textBrowser#】
 	// *.一般来说右边以及下边扩大窗体内容不会动，但是左边和顶部扩大内容会跟着动，我们这里需要一致性，修了它
+	// 3.【!paper auto fit content!】
 	QRect rect_bg;
 
 private:
-	QSizeF papersize{qreal(physicalSize2pix(90)),qreal(physicalSize2pix(120))};// align to textbrowser
-	qreal shrinkFactor=1/1.4;// also align to textbrowser, this will effect Card show content range
+	QSizeF papersize{qreal(physicalSize2pix(90)),qreal(physicalSize2pix(120))};// align to textBrowser
+	qreal shrinkFactor=1/1.4;// also align to textBrowser, this will effect Card show content range
 	QPointF contentAnchor;// pre中心对应的点 【!default set to top left!】
 
 private:
-	QTextDocument document;
-
 	QHBoxLayout layout{this};
 	QWidget mask{this};// 【#ratio keep with textEdit#】 and 【#fill Card#】 | 【#fix#】
 	QTextEdit textEdit{this};// 【#independent size#】 | 【#postion/zoom decide by mouse middle-pos/scroll at mask#】
@@ -75,11 +54,13 @@ private:
 	//      sharp border
 	//      dark/light theme follow global theme
 	// 】!!  font size/style
-	QTextBrowser textBrowser;// 【!a scale up well!】 & with 【#same ratio with textEdit and share content#】
+	QTextBrowser textBrowser;// 【#a scale up well#】 & with 【#same ratio with textEdit and share content#】
+	// 【!an editable back!】
 
-	void textAboutResize()
+	void textEditAboutResize()
 	{	auto&& doc_size=papersize*shrinkFactor;
 		//   resize document
+		auto& document=*(textEdit.document());
 		auto&& new_font=document.defaultFont();
 		document.setPageSize(doc_size);
 		document.setDocumentMargin(shrinkFactor*physicalSize2pix(4));
@@ -107,25 +88,33 @@ public:
 
 		// 2.init text & show
 		textEdit.installEventFilter(this);
-		textEdit.setDocument(&document);
 		textEdit.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		textEdit.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		textAboutResize();
+		textEditAboutResize();
 		// 字体绑定
 
-		textBrowser.setDocument(&document);
+		textBrowser.installEventFilter(this);
+		textBrowser.setAttribute(Qt::WA_QuitOnClose, false);
+		textBrowser.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		textBrowser.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		textBrowser.resize(papersize.width(),papersize.height());// 90x120mm
+		auto& browser_document=*(textBrowser.document());
+		auto&& new_font=browser_document.defaultFont();
+		browser_document.setPageSize(papersize);
+		browser_document.setDocumentMargin(qreal(physicalSize2pix(4)));
+		new_font.setPixelSize(int(physicalSize2pix(4)));
+		browser_document.setDefaultFont(new_font);
 		// 字体绑定
 		textBrowser.hide();
-
-
 
 		resize(400,400);// 不resize的话就显示不了该窗体，貌似是因为前文会顶掉控件默认的resize行为，把size锁定在0，0了
 	};
 	~Card(){};
 
-	void setText(QString& line)
-	{	document.setPlainText(line);
+	void setText(const QString& line)
+	{	textEdit.document()->setPlainText(line);
+		textEditAboutResize();
+		textBrowser.document()->setPlainText(line);
 	}
 
 
@@ -238,13 +227,21 @@ protected:
 		}
 		if(ev->type()==QEvent::Wheel)// zoom paper
 		{	if (!static_cast<QWheelEvent*>(ev)->pixelDelta().isNull())
-				shrinkFactor+=qreal(static_cast<QWheelEvent*>(ev)->pixelDelta().y())/1000;
+				shrinkFactor*=(qreal(static_cast<QWheelEvent*>(ev)->pixelDelta().y())/1000+1);
 			else
-				shrinkFactor+=qreal(static_cast<QWheelEvent*>(ev)->angleDelta().y())/1000;
+				shrinkFactor*=(qreal(static_cast<QWheelEvent*>(ev)->angleDelta().y())/1000+1);
 
-			textAboutResize();
+			textEditAboutResize();
 
 			mask.update();
+			return true;
+		}
+		if(ev->type()==QEvent::MouseButtonDblClick && static_cast<QMouseEvent*>(ev)->button()==Qt::LeftButton)
+		{	textBrowser.show();
+			return true;
+		}
+		if(ev->type()==QEvent::Close && obj==&textBrowser){
+			textBrowser.hide();
 			return true;
 		}
 		return QWidget::eventFilter(obj,ev);

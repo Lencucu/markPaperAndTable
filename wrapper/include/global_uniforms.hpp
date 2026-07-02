@@ -1,10 +1,11 @@
 #include <vector>
 #include <lcctoolbox_filebox.hpp>
 #include <QDebug>
+#include <QCoreApplication>
 
 
 class singlePaper: public LccToolbox::fileBox{
-    QString dirAddTemplate = "notes/%1.md";
+    QString dirAddTemplate = QCoreApplication::applicationDirPath()+"/notes/%1.md";
 public:
     singlePaper(QString& name){
         QByteArray ba = dirAddTemplate.arg(name).toUtf8();
