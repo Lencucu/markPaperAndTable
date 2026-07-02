@@ -70,6 +70,29 @@ int program(int argc, char *argv[])
 
 
     Card c;
+    QString line{R"(
+        hello
+        This is a Big hug ghost story
+                        Yes, I'm the ghost
+        Who you just scary about
+                And I'm so boring
+                        Can you give me some fun?
+Am I a weridol?
+    bad spelling????
+                Am I care about that?
+            Am I crazy??
+        No
+        Yes
+        Whatever
+        So when to end
+    My English is just like that junk
+                Come
+                Three more line
+
+
+                .)"
+    };
+    c.setText(line);
     c.show();
 
     return a.exec();

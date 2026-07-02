@@ -58,7 +58,6 @@ class Card : public QWidget{
 	// 【!when get foucs on, show a boarder and slowly disappear!】
 	// 2.【!double click show textBrowser!】
 	// *.一般来说右边以及下边扩大窗体内容不会动，但是左边和顶部扩大内容会跟着动，我们这里需要一致性，修了它
-	bool mask_focus=false;
 	QRect rect_bg;
 
 private:
@@ -78,8 +77,22 @@ private:
 	// 】!!  font size/style
 	QTextBrowser textBrowser;// 【!a scale up well!】 & with 【#same ratio with textEdit and share content#】
 
+	void textAboutResize()
+	{	auto&& doc_size=papersize*shrinkFactor;
+		//   resize document
+		auto&& new_font=document.defaultFont();
+		document.setPageSize(doc_size);
+		document.setDocumentMargin(shrinkFactor*physicalSize2pix(4));
+		new_font.setPixelSize(qRound(shrinkFactor*physicalSize2pix(4)));
+		document.setDefaultFont(new_font);
+
+		// auto&& t_e_size=document.pageSize().toSize();
+		auto&& t_e_size=doc_size.toSize();
+		textEdit.resize(t_e_size);
+	}
+
 public:
-	Card(QWidget* parent=nullptr):QWidget(parent/*,Qt::FramelessWindowHint*/)
+	Card(qreal shrink_factor=1/1.4,QWidget* parent=nullptr):shrinkFactor(shrink_factor),QWidget(parent/*,Qt::FramelessWindowHint*/)
 	{   // 1.set mask
 		installEventFilter(this);
 		mask.installEventFilter(this);
@@ -95,7 +108,9 @@ public:
 		// 2.init text & show
 		textEdit.installEventFilter(this);
 		textEdit.setDocument(&document);
-		textEdit.resize(papersize.width()/1.4,papersize.height()/1.4);// 90x120mm
+		textEdit.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		textEdit.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		textAboutResize();
 		// 字体绑定
 
 		textBrowser.setDocument(&document);
@@ -109,6 +124,10 @@ public:
 	};
 	~Card(){};
 
+	void setText(QString& line)
+	{	document.setPlainText(line);
+	}
+
 
 protected:
 	void resizeEvent(QResizeEvent *e) override// won't change textEdit size
@@ -121,14 +140,17 @@ protected:
 	};
 	bool eventFilter(QObject *obj, QEvent *ev) override
 	{	if(ev->type()==QEvent::Resize && obj==&textEdit)// draw textEdit
-		{	QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
+		{	auto&& new_size_f=static_cast<QResizeEvent*>(ev)->size().toSizeF();
+			auto&& old_size_f=static_cast<QResizeEvent*>(ev)->oldSize().toSizeF();
+
+			QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
 			// pos=center-size*anchor
 			QPointF pos{
-				center_point.x()-static_cast<QResizeEvent*>(ev)->oldSize().toSizeF().width()*contentAnchor.x(),
-				center_point.y()-static_cast<QResizeEvent*>(ev)->oldSize().toSizeF().height()*contentAnchor.y()
+				center_point.x()-old_size_f.width()*contentAnchor.x(),
+				center_point.y()-old_size_f.height()*contentAnchor.y()
 			};
-			auto ratio=static_cast<QResizeEvent*>(ev)->size().toSizeF().width()/
-				static_cast<QResizeEvent*>(ev)->oldSize().toSizeF().width();
+			auto ratio=new_size_f.width()/
+				old_size_f.width();
 			// (newpos-center)/(pos-center)=ratio
 			auto newpos=((pos-center_point)*ratio+center_point).toPoint();
 			textEdit.move(newpos);
@@ -216,11 +238,12 @@ protected:
 		}
 		if(ev->type()==QEvent::Wheel)// zoom paper
 		{	if (!static_cast<QWheelEvent*>(ev)->pixelDelta().isNull())
-				shrinkFactor-=qreal(static_cast<QWheelEvent*>(ev)->pixelDelta().y())/1000;
+				shrinkFactor+=qreal(static_cast<QWheelEvent*>(ev)->pixelDelta().y())/1000;
 			else
-				shrinkFactor-=qreal(static_cast<QWheelEvent*>(ev)->angleDelta().y())/1000;
-			auto size=papersize.toSize()*shrinkFactor;
-			textEdit.resize(size);
+				shrinkFactor+=qreal(static_cast<QWheelEvent*>(ev)->angleDelta().y())/1000;
+
+			textAboutResize();
+
 			mask.update();
 			return true;
 		}
