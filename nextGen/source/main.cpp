@@ -1,4 +1,5 @@
 #include <ceiling/MainBoard.hpp>
+#include <ceiling/ceiling/ScrollLand.hpp>
 
 #include <QApplication>
 #include <QSystemTrayIcon>
@@ -9,47 +10,47 @@
 
 template<class T>// T should have like constructor()
 void displayLogicWrapper(QApplication& a)
-{   QSystemTrayIcon *tray = new QSystemTrayIcon(&a);// 托盘图标
+{	QSystemTrayIcon *tray = new QSystemTrayIcon(&a);// 托盘图标
 		tray->setIcon(QIcon(QCoreApplication::applicationDirPath()+"/logo.png"));   // 换成你的图标
 		tray->setToolTip("mpt");
 
-		QMenu menu;// 托盘菜单
-			QAction *quitAct = menu.addAction("退出");
+		QMenu* menu=new QMenu;// 托盘菜单
+			QAction *quitAct = menu->addAction("退出");
 			QObject::connect(quitAct, &QAction::triggered, &a, &QApplication::quit);
-		tray->setContextMenu(&menu);
+		tray->setContextMenu(menu);
 
 
-	T mainboard;
-		QHotkey hotkey(QKeySequence("Ctrl+Shift+Alt+Z"), true, &a); //The hotkey will be automatically registered//    qDebug() << "Is registered:" << hotkey.isRegistered();
-		QObject::connect(&hotkey, &QHotkey::activated, qApp, [&](){
-			if (mainboard.isVisible()) {
-				if(mainboard.isActiveWindow())
-					mainboard.hide();
+	T* mainboard=new T;
+		QHotkey* hotkey=new QHotkey{QKeySequence("Ctrl+Shift+Alt+Z"), true, &a}; //The hotkey will be automatically registered//    qDebug() << "Is registered:" << hotkey.isRegistered();
+		QObject::connect(hotkey, &QHotkey::activated, qApp, [&](){
+			if (mainboard->isVisible()) {
+				if(mainboard->isActiveWindow())
+					mainboard->hide();
 				else
-					mainboard.activateWindow();
+					mainboard->activateWindow();
 			} else {
-				// mainboard.effect->setOpacity(1);
-				mainboard.show();
-				mainboard.activateWindow();
+				// mainboard->effect->setOpacity(1);
+				mainboard->show();
+				mainboard->activateWindow();
 			}
 		});
 	QObject::connect(tray, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason){
 		if (reason == QSystemTrayIcon::Trigger) { 
 			// 普通点击（单击）处理
 			// qDebug() << "托盘图标被点击";
-			if (mainboard.isVisible()) {
-				if(!mainboard.isActiveWindow())
-					mainboard.activateWindow();
+			if (mainboard->isVisible()) {
+				if(!mainboard->isActiveWindow())
+					mainboard->activateWindow();
 			} else {
-				// mainboard.effect->setOpacity(1);
-				mainboard.show();
-				mainboard.activateWindow();
+				// mainboard->effect->setOpacity(1);
+				mainboard->show();
+				mainboard->activateWindow();
 			}
 		}
 		// 如果需要，也可以处理双击：
 		// else if (reason == QSystemTrayIcon::DoubleClick) { ... }
 	});
-	mainboard.show();
+	mainboard->show();
 	tray->show();
 }
 
@@ -65,6 +66,11 @@ int main(int argc, char *argv[])
 
 	QApplication a(argc, argv);
 	displayLogicWrapper<MainBoard>(a);
+	ScrollLand<Card> sl;
+	sl.addContent(QCoreApplication::applicationDirPath()+"/notes/design.md");
+	sl.addContent(QCoreApplication::applicationDirPath()+"/notes/story.md");
+	sl.addContent(QCoreApplication::applicationDirPath()+"/notes/timetest.md");
+	sl.show();
 	auto c=a.exec();
 
 	ReleaseMutex(hMutex);

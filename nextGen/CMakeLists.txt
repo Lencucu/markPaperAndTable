@@ -19,6 +19,10 @@ add_library(QHotkey::QHotkey ALIAS qhotkey)
 
 set(PROJECT_SOURCES
 	source/ceiling/MainBoard.hpp
+	source/ceiling/ceiling/ScrollLand.hpp
+	source/ceiling/ceiling/ceiling/Card.hpp
+	source/tools/physical2pixel.hpp
+	source/tools/physical2pixel.cpp
 	source/main.cpp
 )
 
@@ -59,6 +63,9 @@ add_custom_command(TARGET markPaperAndTable POST_BUILD
 COMMAND ${CMAKE_COMMAND} -E copy_directory
 	${CMAKE_SOURCE_DIR}/../program_assets/logo
 	$<TARGET_FILE_DIR:markPaperAndTable>
+COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/../program_assets/notes
+    $<TARGET_FILE_DIR:markPaperAndTable>/notes
 )
 
 set_target_properties(markPaperAndTable PROPERTIES

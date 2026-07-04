@@ -27,7 +27,8 @@ class MainBoard:public QWidget{
 	QWidget* w2_p=nullptr;
 public:
 	MainBoard(QWidget* w1_p=new QWidget,QWidget* w2_p=new QWidget):w1_p(w1_p),w2_p(w2_p)
-	{	auto& w1=*w1_p;
+	{	// @@@ here can't be sure w1_p or w2_p is valid or not
+		auto& w1=*w1_p;
 		auto& w2=*w2_p;
 
 		w1.setMinimumSize(200,50);
@@ -38,6 +39,12 @@ public:
 		layout.setSpacing(layout.contentsMargins().left());
 		layout.addWidget(&w1);
 		layout.addWidget(&w2);
+		// layout->setContentsMargins(0, margin, 0, margin);//left, top, right, bottom
+		// layout->setSpacing(0);
+		// layout->addWidget(new QWidget);
+		// layout->addSpacerItem(new QSpacerItem(0,margin,QSizePolicy::Expanding,QSizePolicy::Fixed));
+		// layout->addWidget(this);
+		// layout->activate();
 		setObjectName("main");
 		w1.setObjectName("sub1");
 		w2.setObjectName("sub2");
