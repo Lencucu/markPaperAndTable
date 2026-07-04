@@ -7,11 +7,9 @@
 #include <QHotkey>
 
 
-int program(int argc, char *argv[])
-{   QApplication a(argc, argv);
-
-
-	QSystemTrayIcon *tray = new QSystemTrayIcon(&a);// 托盘图标
+template<class T>// T should have like constructor()
+void displayLogicWrapper(QApplication& a)
+{   QSystemTrayIcon *tray = new QSystemTrayIcon(&a);// 托盘图标
 		tray->setIcon(QIcon(QCoreApplication::applicationDirPath()+"/logo.png"));   // 换成你的图标
 		tray->setToolTip("mpt");
 
@@ -21,7 +19,7 @@ int program(int argc, char *argv[])
 		tray->setContextMenu(&menu);
 
 
-	MainBoard mainboard{new QWidget,new QWidget};
+	T mainboard;
 		QHotkey hotkey(QKeySequence("Ctrl+Shift+Alt+Z"), true, &a); //The hotkey will be automatically registered//    qDebug() << "Is registered:" << hotkey.isRegistered();
 		QObject::connect(&hotkey, &QHotkey::activated, qApp, [&](){
 			if (mainboard.isVisible()) {
@@ -53,9 +51,6 @@ int program(int argc, char *argv[])
 	});
 	mainboard.show();
 	tray->show();
-
-
-	return a.exec();
 }
 
 
@@ -68,8 +63,11 @@ int main(int argc, char *argv[])
 {	HANDLE hMutex = CreateMutexA(NULL, TRUE, "Global\\MyUniqueAppName");
 	if (GetLastError() == ERROR_ALREADY_EXISTS) return 0; // 已有实例
 
-	program(argc, argv);// 主程序逻辑
+	QApplication a(argc, argv);
+	displayLogicWrapper<MainBoard>(a);
+	auto c=a.exec();
 
 	ReleaseMutex(hMutex);
 	CloseHandle(hMutex);
+	return c;
 }
