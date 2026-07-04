@@ -110,8 +110,19 @@ public:
 		textBrowser.document()->setPlainText(line);
 	}
 
+	void installEventFilter(QObject* obj)
+	{	QWidget::installEventFilter(obj);
+		mask.installEventFilter(obj);
+	}
+
 
 protected:
+	bool hasHeightForWidth() const override
+	{	return true;
+	}
+	int heightForWidth(int w) const override
+	{	return int(w*0.8);
+	}
 	void resizeEvent(QResizeEvent *e) override// won't change textEdit size
 	{	// 同步到textEdit
 		QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
@@ -218,7 +229,7 @@ protected:
 				return true;
 			}
 		}
-		if(ev->type()==QEvent::Wheel)// zoom paper
+		if(ev->type()==QEvent::Wheel && obj!=&textBrowser)// zoom paper
 		{	if (!static_cast<QWheelEvent*>(ev)->pixelDelta().isNull())
 				shrinkFactor*=(qreal(static_cast<QWheelEvent*>(ev)->pixelDelta().y())/1000+1);
 			else

@@ -23,15 +23,19 @@
 #include <QFile>// can pack with addContents
 #include <QTextStream>// can pack with addContents
 #include <ceiling/ceiling/ceiling/Card.hpp>// can pack with addContents
+#include <QResizeEvent>// can pack with resizeEvent
+#include <QCoreApplication>// can pack with constructor
+#include <QMouseEvent>// can pack with eventFilter
 
-
-template<class T_content>
+template<class T_content, bool demo=false>
 class ScrollLand:public QScrollArea{// ScrollArea->viewport->container
 	QWidget contentContainer;
 	QHBoxLayout layout{&contentContainer};
+	qreal contentRatio=1.3333;
 
 	T_content* focuMark=nullptr;
 	bool focuPointOnSub=false;
+	// 要设置一个主动跳出的逻辑
 
 public:
 	ScrollLand(QWidget* parent=nullptr):QScrollArea(parent)
@@ -48,7 +52,18 @@ public:
 		layout.setContentsMargins(0,0,0,0);
 		layout.setSpacing(10);
 
-		resize(400,400);
+		if(demo)
+		{	addContent(QCoreApplication::applicationDirPath()+"/notes/design.md");
+			addContent(QCoreApplication::applicationDirPath()+"/notes/story.md");
+			addContent(QCoreApplication::applicationDirPath()+"/notes/timetest.md");
+			addContent(QCoreApplication::applicationDirPath()+"/notes/installEventFilter.md");
+			addContent(QCoreApplication::applicationDirPath()+"/notes/design.md");
+			addContent(QCoreApplication::applicationDirPath()+"/notes/story.md");
+			addContent(QCoreApplication::applicationDirPath()+"/notes/timetest.md");
+			addContent(QCoreApplication::applicationDirPath()+"/notes/installEventFilter.md");
+		}
+
+		resize(400,150);
 	}
 
 	void addContent(const QString& filename)
@@ -56,13 +71,8 @@ public:
 		if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
 
 		Card* card = new Card{qreal(1/2.0),this};
-		card->setFixedSize(100,100);
 		card->installEventFilter(this);
-		//////////////////////////////////////////
-		////////////////!!!!!!!!!!!!//////////////
-		//////////////////////////////////////////
-		for (auto* w : card->findChildren<QWidget*>())
-			w->installEventFilter(this);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		layout.addWidget(card);
 
 		QTextStream in(&file);
@@ -72,6 +82,10 @@ public:
 
 
 protected:
+    void resizeEvent(QResizeEvent *e) override
+	{	contentContainer.setFixedWidth(qRound(e->size().height()*layout.count()*contentRatio));
+		QScrollArea::resizeEvent(e);
+	}
 	bool eventFilter(QObject* obj, QEvent* ev) override
 	{	if(ev->type()==QEvent::Wheel)
 		{	if(!focuPointOnSub)// 当滚动且焦点没在子控件上时
@@ -88,9 +102,16 @@ protected:
 				return true;
 			}
 		}
+		// 无焦点只有中键press后获取focu，其他都需要release才行
+		// 退焦的话左右键都只需要press，中键的话由于有导航逻辑需要release
 		if(ev->type()==QEvent::MouseButtonRelease && obj!=this)// 注册过的子控件获得焦点
 		{	if(focuMark=qobject_cast<T_content*>(obj))
-			{	focuPointOnSub=true;
+			{	if(static_cast<QMouseEvent*>(ev)->button()!=Qt::MiddleButton && focuPointOnSub)
+				{	focuMark=nullptr;
+					focuPointOnSub=false;
+					return true;
+				}
+				focuPointOnSub=true;
 				return true;
 			}
 		}

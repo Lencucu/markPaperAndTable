@@ -65,12 +65,7 @@ int main(int argc, char *argv[])
 	if (GetLastError() == ERROR_ALREADY_EXISTS) return 0; // 已有实例
 
 	QApplication a(argc, argv);
-	displayLogicWrapper<MainBoard>(a);
-	ScrollLand<Card> sl;
-	sl.addContent(QCoreApplication::applicationDirPath()+"/notes/design.md");
-	sl.addContent(QCoreApplication::applicationDirPath()+"/notes/story.md");
-	sl.addContent(QCoreApplication::applicationDirPath()+"/notes/timetest.md");
-	sl.show();
+	displayLogicWrapper<MainBoard<QWidget,ScrollLand<Card,true>>>(a);
 	auto c=a.exec();
 
 	ReleaseMutex(hMutex);

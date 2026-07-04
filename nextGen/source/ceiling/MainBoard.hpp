@@ -21,12 +21,13 @@
 
 
 
+template<class T_top=QWidget,class T_bottom=QWidget>
 class MainBoard:public QWidget{
 	QVBoxLayout layout{this};
 	QWidget* w1_p=nullptr;
 	QWidget* w2_p=nullptr;
 public:
-	MainBoard(QWidget* w1_p=new QWidget,QWidget* w2_p=new QWidget):w1_p(w1_p),w2_p(w2_p)
+	MainBoard(QWidget* w1_p=new T_top,QWidget* w2_p=new T_bottom):w1_p(w1_p),w2_p(w2_p)
 	{	// @@@ here can't be sure w1_p or w2_p is valid or not
 		auto& w1=*w1_p;
 		auto& w2=*w2_p;
