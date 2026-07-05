@@ -16,7 +16,7 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QResizeEvent>
-#include <tools/physical2pixel.hpp>
+#include <tools/physical2pixel/physical2pixel.hpp>
 
 
 

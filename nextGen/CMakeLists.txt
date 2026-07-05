@@ -21,8 +21,11 @@ set(PROJECT_SOURCES
 	source/ceiling/MainBoard.hpp
 	source/ceiling/ceiling/ScrollLand.hpp
 	source/ceiling/ceiling/ceiling/Card.hpp
-	source/tools/physical2pixel.hpp
-	source/tools/physical2pixel.cpp
+	source/ceiling/ceiling/ceiling/ceiling/Paper.hpp
+	source/standalone/docList/docList.hpp
+	source/tools/physical2pixel/physical2pixel.hpp
+	source/tools/physical2pixel/physical2pixel.cpp
+	source/test/graphics.hpp
 	source/main.cpp
 )
 

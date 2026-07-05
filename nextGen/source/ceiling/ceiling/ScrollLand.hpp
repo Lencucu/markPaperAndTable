@@ -26,6 +26,7 @@
 #include <QResizeEvent>// can pack with resizeEvent
 #include <QCoreApplication>// can pack with constructor
 #include <QMouseEvent>// can pack with eventFilter
+#include <QDebug>
 
 template<class T_content, bool demo=false>
 class ScrollLand:public QScrollArea{// ScrollArea->viewport->container
@@ -102,17 +103,18 @@ protected:
 				return true;
 			}
 		}
-		// 无焦点只有中键press后获取focu，其他都需要release才行
-		// 退焦的话左右键都只需要press，中键的话由于有导航逻辑需要release
-		if(ev->type()==QEvent::MouseButtonRelease && obj!=this)// 注册过的子控件获得焦点
-		{	if(focuMark=qobject_cast<T_content*>(obj))
-			{	if(static_cast<QMouseEvent*>(ev)->button()!=Qt::MiddleButton && focuPointOnSub)
+		if(ev->type()==QEvent::MouseButtonPress && obj!=this)// 注册过的子控件获得焦点
+		{	if(auto lc_focuMark=qobject_cast<T_content*>(obj->parent()))// here use auto just for make sure focuMark always on focuPoint widget
+			{	if(!focuPointOnSub && static_cast<QMouseEvent*>(ev)->button()==Qt::MiddleButton)// 无焦点中键按压直接获取焦点
+				{	focuMark=lc_focuMark;
+					focuPointOnSub=true;
+					return true;
+				}
+				if(focuPointOnSub && static_cast<QMouseEvent*>(ev)->button()!=Qt::MiddleButton)// 有焦点左右按压失焦
 				{	focuMark=nullptr;
 					focuPointOnSub=false;
 					return true;
 				}
-				focuPointOnSub=true;
-				return true;
 			}
 		}
 		if(ev->type()==QEvent::Leave && obj==focuMark && focuPointOnSub)// 注册过的子控件丢失焦点

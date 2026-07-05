@@ -6,6 +6,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QHotkey>
+#include <test/graphics.hpp>
 
 
 template<class T>// T should have like constructor()
@@ -66,6 +67,7 @@ int main(int argc, char *argv[])
 
 	QApplication a(argc, argv);
 	displayLogicWrapper<MainBoard<QWidget,ScrollLand<Card,true>>>(a);
+	// graphics();
 	auto c=a.exec();
 
 	ReleaseMutex(hMutex);
