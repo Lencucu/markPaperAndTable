@@ -7,3 +7,5 @@
 // public:
 // 	// rewrite add/del
 // };
+
+xx.add->ScrollLand.addCard

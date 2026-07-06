@@ -1,5 +1,6 @@
 #include <ceiling/MainBoard.hpp>
 #include <ceiling/ceiling/ScrollLand.hpp>
+#include <ceiling/ceiling/ceiling/Card.hpp>
 
 #include <QApplication>
 #include <QSystemTrayIcon>
@@ -9,7 +10,8 @@
 #include <test/graphics.hpp>
 
 
-template<class T>// T should have like constructor()
+
+
 void displayLogicWrapper(QApplication& a)
 {	QSystemTrayIcon *tray = new QSystemTrayIcon(&a);// 托盘图标
 		tray->setIcon(QIcon(QCoreApplication::applicationDirPath()+"/logo.png"));   // 换成你的图标
@@ -21,7 +23,7 @@ void displayLogicWrapper(QApplication& a)
 		tray->setContextMenu(menu);
 
 
-	T* mainboard=new T;
+	MainBoard* mainboard=new MainBoard{new ScrollLand<Card,true>};
 		QHotkey* hotkey=new QHotkey{QKeySequence("Ctrl+Shift+Alt+Z"), true, &a}; //The hotkey will be automatically registered//    qDebug() << "Is registered:" << hotkey.isRegistered();
 		QObject::connect(hotkey, &QHotkey::activated, qApp, [&](){
 			if (mainboard->isVisible()) {
@@ -66,7 +68,7 @@ int main(int argc, char *argv[])
 	if (GetLastError() == ERROR_ALREADY_EXISTS) return 0; // 已有实例
 
 	QApplication a(argc, argv);
-	displayLogicWrapper<MainBoard<QWidget,ScrollLand<Card,true>>>(a);
+	displayLogicWrapper(a);
 	// graphics();
 	auto c=a.exec();
 

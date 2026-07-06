@@ -38,6 +38,7 @@ private:
 	QSizeF papersize{qreal(physicalSize2pix(90)),qreal(physicalSize2pix(120))};// align to textBrowser
 	qreal shrinkFactor=1/1.4;// also align to textBrowser, this will effect Card show content range
 	QPointF contentAnchor;// pre中心对应的点 【!default set to top left!】
+	bool clicked=false;
 
 private:
 	QHBoxLayout layout{this};
@@ -115,6 +116,12 @@ public:
 		mask.installEventFilter(obj);
 	}
 
+	void fresh_content(bool selfcall=false)// 将内容对齐到左上角
+	{	if(!selfcall) clicked=false;
+		contentAnchor.setX(mask.size().toSizeF().width()/2/textEdit.size().width());
+		contentAnchor.setY(mask.size().toSizeF().height()/2/textEdit.size().height());
+	}
+
 
 protected:
 	bool hasHeightForWidth() const override
@@ -132,21 +139,24 @@ protected:
 		);
 	};
 	bool eventFilter(QObject *obj, QEvent *ev) override
-	{	if(ev->type()==QEvent::Resize && obj==&textEdit)// draw textEdit
-		{	auto&& new_size_f=static_cast<QResizeEvent*>(ev)->size().toSizeF();
-			auto&& old_size_f=static_cast<QResizeEvent*>(ev)->oldSize().toSizeF();
+	{	if(ev->type()==QEvent::Resize)// draw textEdit
+		{	if(!clicked) fresh_content(true);
+			else if(obj==&textEdit)
+			{	auto&& new_size_f=static_cast<QResizeEvent*>(ev)->size().toSizeF();
+				auto&& old_size_f=static_cast<QResizeEvent*>(ev)->oldSize().toSizeF();
 
-			QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
-			// pos=center-size*anchor
-			QPointF pos{
-				center_point.x()-old_size_f.width()*contentAnchor.x(),
-				center_point.y()-old_size_f.height()*contentAnchor.y()
-			};
-			auto ratio=new_size_f.width()/
-				old_size_f.width();
-			// (newpos-center)/(pos-center)=ratio
-			auto newpos=((pos-center_point)*ratio+center_point).toPoint();
-			textEdit.move(newpos);
+				QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
+				// pos=center-size*anchor
+				QPointF pos{
+					center_point.x()-old_size_f.width()*contentAnchor.x(),
+					center_point.y()-old_size_f.height()*contentAnchor.y()
+				};
+				auto ratio=new_size_f.width()/
+					old_size_f.width();
+				// (newpos-center)/(pos-center)=ratio
+				auto newpos=((pos-center_point)*ratio+center_point).toPoint();
+				textEdit.move(newpos);
+			}
 		}
 		if(ev->type()==QEvent::Paint && obj==&mask)// draw mask
 		{	QPainter qp{&mask};
@@ -217,7 +227,8 @@ protected:
 		}
 		if(obj==&mask && (ev->type()==QEvent::MouseButtonPress || ev->type()==QEvent::MouseMove))// show-pos control
 		{	if(static_cast<QMouseEvent*>(ev)->buttons()&Qt::MiddleButton)
-			{	contentAnchor.rx()=(static_cast<QMouseEvent*>(ev)->position().x()-rect_bg.x())/rect_bg.width();
+			{	if(!clicked) clicked=true;
+				contentAnchor.rx()=(static_cast<QMouseEvent*>(ev)->position().x()-rect_bg.x())/rect_bg.width();
 				contentAnchor.ry()=(static_cast<QMouseEvent*>(ev)->position().y()-rect_bg.y())/rect_bg.height();
 				// 同步到textEdit
 				QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};

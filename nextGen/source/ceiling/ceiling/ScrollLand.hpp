@@ -22,14 +22,18 @@
 #include <QScrollBar>// can pack with eventFilter
 #include <QFile>// can pack with addContents
 #include <QTextStream>// can pack with addContents
-#include <ceiling/ceiling/ceiling/Card.hpp>// can pack with addContents
 #include <QResizeEvent>// can pack with resizeEvent
 #include <QCoreApplication>// can pack with constructor
 #include <QMouseEvent>// can pack with eventFilter
-#include <QDebug>
+#include <QList>
+
+
+
 
 template<class T_content, bool demo=false>
 class ScrollLand:public QScrollArea{// ScrollArea->viewport->container
+	QList<T_content*> contents;
+
 	QWidget contentContainer;
 	QHBoxLayout layout{&contentContainer};
 	qreal contentRatio=1.3333;
@@ -71,7 +75,7 @@ public:
 	{	QFile file(filename);
 		if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
 
-		Card* card = new Card{qreal(1/2.0),this};
+		T_content* card = new T_content{qreal(1/2.0),this};
 		card->installEventFilter(this);
 		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		layout.addWidget(card);

@@ -5,6 +5,8 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QSizePolicy>
+#include <QLineEdit>
+#include <functional>
 
 
 
@@ -21,25 +23,25 @@
 
 
 
-template<class T_top=QWidget,class T_bottom=QWidget>
 class MainBoard:public QWidget{
 	QVBoxLayout layout{this};
-	QWidget* w1_p=nullptr;
-	QWidget* w2_p=nullptr;
+	QLineEdit lineEdit;
+	QWidget* widget=nullptr;
 public:
-	MainBoard(QWidget* w1_p=new T_top,QWidget* w2_p=new T_bottom):w1_p(w1_p),w2_p(w2_p)
-	{	// @@@ here can't be sure w1_p or w2_p is valid or not
-		auto& w1=*w1_p;
-		auto& w2=*w2_p;
+	const QObject* top(){return &lineEdit;}
+	MainBoard(QWidget* attach=nullptr,QWidget* parent=nullptr):widget(attach),QWidget(parent)
+	{	// @@@ here can't be sure w1_p or widget is valid or not
+		if(!widget) widget=new QWidget;
+		// QObject::connect(w1_p,,widget,);
 
-		w1.setMinimumSize(200,50);
-		w1.setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-		w2.setMinimumSize(200,100);
-		w2.setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+		lineEdit.setMinimumSize(300,24);
+		lineEdit.setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+		widget->setMinimumSize(300,90);
+		widget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 
 		layout.setSpacing(layout.contentsMargins().left());
-		layout.addWidget(&w1);
-		layout.addWidget(&w2);
+		layout.addWidget(&lineEdit);
+		layout.addWidget(widget);
 		// layout->setContentsMargins(0, margin, 0, margin);//left, top, right, bottom
 		// layout->setSpacing(0);
 		// layout->addWidget(new QWidget);
@@ -47,8 +49,8 @@ public:
 		// layout->addWidget(this);
 		// layout->activate();
 		setObjectName("main");
-		w1.setObjectName("sub1");
-		w2.setObjectName("sub2");
+		lineEdit.setObjectName("sub1");
+		widget->setObjectName("sub2");
 
 		setStyleSheet(R"(
 			#main{background-color: #D0E8D8;}
