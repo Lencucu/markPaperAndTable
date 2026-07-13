@@ -2,22 +2,30 @@
 #define CARD_HPP
 
 
-#include <QWidget>
-#include <QTextBrowser>
-#include <QTextDocument>
-#include <QTextEdit>
-#include <QHBoxLayout>
-#include <QEvent>
-#include <QSize>      // QSize / QSizeF
-#include <QPainter>
+#include <QDebug>
+
+#include <QSize>
 #include <QRect>
 #include <QColor>
 #include <QPointF>
+#include <QGraphicsScene>
+
+#include <QWidget>
+#include <QTextBrowser>
+#include <QTextDocument>
+#include <QGraphicsView>
+#include <QGraphicsProxyWidget>
+#include "ceiling/Paper.hpp"
+
+#include <QEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QResizeEvent>
-#include <tools/physical2pixel/physical2pixel.hpp>
 
+#include <QPainter>
+#include <QHBoxLayout>
+// #include <tools/physical2pixel/physical2pixel.hpp>
+#include <functional>
 
 
 
@@ -27,99 +35,75 @@
 
 class Card : public QWidget{
 	Q_OBJECT
-	// 1.【!just click or mouse hover over specific time then get focus!】
-	// 【!when get foucs on, show a boarder and slowly disappear!】
-	// 2.【#double click show textBrowser#】
-	// *.一般来说右边以及下边扩大窗体内容不会动，但是左边和顶部扩大内容会跟着动，我们这里需要一致性，修了它
-	// 3.【!paper auto fit content!】
 	QRect rect_bg;
+	QGraphicsScene paper_view_scene{this};
 
 private:
-	QSizeF papersize{qreal(physicalSize2pix(90)),qreal(physicalSize2pix(120))};// align to textBrowser
-	qreal shrinkFactor=1/1.4;// also align to textBrowser, this will effect Card show content range
+	qreal shrinkFactor;// also align to textBrowser, this will effect Card show content range
 	QPointF contentAnchor;// pre中心对应的点 【!default set to top left!】
-	bool clicked=false;
+	bool middleButtonClicked=false;
 
 private:
 	QHBoxLayout layout{this};
-	QWidget mask{this};// 【#ratio keep with textEdit#】 and 【#fill Card#】 | 【#fix#】
-	QTextEdit textEdit{this};// 【#independent size#】 | 【#postion/zoom decide by mouse middle-pos/scroll at mask#】
-	// 【!! style:(globe)
-	//      sharp border
-	//      dark/light theme follow global theme
-	// 】!!  font size/style
-	QTextBrowser textBrowser;// 【#a scale up well#】 & with 【#same ratio with textEdit and share content#】
-	// 【!an editable back!】
+	QWidget mask{this};
+	Paper paper{SET_AUTO_HIDE_ENABLE};
+	QGraphicsView paperView{&paper_view_scene,this};
+	QGraphicsProxyWidget* paperProxy=nullptr;
 
-	void textEditAboutResize()
-	{	auto&& doc_size=papersize*shrinkFactor;
-		//   resize document
-		auto& document=*(textEdit.document());
-		auto&& new_font=document.defaultFont();
-		document.setPageSize(doc_size);
-		document.setDocumentMargin(shrinkFactor*physicalSize2pix(4));
-		new_font.setPixelSize(qRound(shrinkFactor*physicalSize2pix(4)));
-		document.setDefaultFont(new_font);
+	void paperAboutResize()
+	{	paperView.setTransform(QTransform{}.scale(shrinkFactor,shrinkFactor));
+		paperView.resize(paper.realSize()*shrinkFactor);
+	}
 
-		// auto&& t_e_size=document.pageSize().toSize();
-		auto&& t_e_size=doc_size.toSize();
-		textEdit.resize(t_e_size);
+	void paperAboutMoveAlign()
+	{	// 同步到paper
+		QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
+		paperView.move(
+			qRound(center_point.x()-paperView.size().toSizeF().width()*contentAnchor.x()),
+			qRound(center_point.y()-paperView.size().toSizeF().height()*contentAnchor.y())
+		);
 	}
 
 public:
-	Card(qreal shrink_factor=1/1.4,QWidget* parent=nullptr):shrinkFactor(shrink_factor),QWidget(parent/*,Qt::FramelessWindowHint*/)
-	{   // 1.set mask
+	Card(qreal shrink_factor=1/1.2,QWidget* parent=nullptr):shrinkFactor(shrink_factor),QWidget(parent/*,Qt::FramelessWindowHint*/)
+	{   // 1.UI set
 		installEventFilter(this);
 		mask.installEventFilter(this);
 		mask.raise();// 置顶
 		layout.setContentsMargins(0,0,0,0);// 填满
 		setLayout(&layout);
 		layout.addWidget(&mask);
-		// set layout resize & show logic op method
-		// *****testblock
-		mask.setStyleSheet("background-color:rgba(180,200,255,0%);");
-		// *****testblock
+		mask.setStyleSheet("background-color:rgba(0,0,0,0%);");
+		paperView.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		paperView.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-		// 2.init text & show
-		textEdit.installEventFilter(this);
-		textEdit.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		textEdit.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		textEditAboutResize();
-		// 字体绑定
+		// 2.paper install
+		paperProxy=paper_view_scene.addWidget(&paper);//////////////////////
+		paper.undetach();// 这里主要作用在自动隐藏按钮 // scene.addWidget不会调用setParent所以只能手动触发
+		paper.installEventFilter(this);
+		paper.signFlatDragBtFunc([this](){paperProxy->setWidget(&paper);});
+		paperView.installEventFilter(this);
+		paperAboutResize();// apply shrink factor
 
-		textBrowser.installEventFilter(this);
-		textBrowser.setAttribute(Qt::WA_QuitOnClose, false);
-		textBrowser.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		textBrowser.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		textBrowser.resize(papersize.width(),papersize.height());// 90x120mm
-		auto& browser_document=*(textBrowser.document());
-		auto&& new_font=browser_document.defaultFont();
-		browser_document.setPageSize(papersize);
-		browser_document.setDocumentMargin(qreal(physicalSize2pix(4)));
-		new_font.setPixelSize(int(physicalSize2pix(4)));
-		browser_document.setDefaultFont(new_font);
-		// 字体绑定
-		textBrowser.hide();
-
-		resize(400,400);// 不resize的话就显示不了该窗体，貌似是因为前文会顶掉控件默认的resize行为，把size锁定在0，0了
+		// 3.init by resize after install
+		resize(400,400);// size默认无效值(-1,-1)
 	};
 	~Card(){};
 
 	void setText(const QString& line)
-	{	textEdit.document()->setPlainText(line);
-		textEditAboutResize();
-		textBrowser.document()->setPlainText(line);
+	{	paper.setText(line);
 	}
 
-	void installEventFilter(QObject* obj)
-	{	QWidget::installEventFilter(obj);
-		mask.installEventFilter(obj);
+	void installEventFilter(QObject* filterObj)
+	{	QObject::installEventFilter(filterObj);
+		mask.installEventFilter(filterObj);
 	}
 
-	void fresh_content(bool selfcall=false)// 将内容对齐到左上角
-	{	if(!selfcall) clicked=false;
-		contentAnchor.setX(mask.size().toSizeF().width()/2/textEdit.size().width());
-		contentAnchor.setY(mask.size().toSizeF().height()/2/textEdit.size().height());
+	template<bool selfcall=false>
+	void fresh_content()// 将内容对齐到左上角
+	{	if(!selfcall) middleButtonClicked=false;
+		contentAnchor.setX(mask.size().toSizeF().width()/2/paperView.size().width());
+		contentAnchor.setY(mask.size().toSizeF().height()/2/paperView.size().height());
 	}
 
 
@@ -130,18 +114,13 @@ protected:
 	int heightForWidth(int w) const override
 	{	return int(w*0.8);
 	}
-	void resizeEvent(QResizeEvent *e) override// won't change textEdit size
-	{	// 同步到textEdit
-		QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
-		textEdit.move(
-			qRound(center_point.x()-textEdit.size().toSizeF().width()*contentAnchor.x()),
-			qRound(center_point.y()-textEdit.size().toSizeF().height()*contentAnchor.y())
-		);
+	void resizeEvent(QResizeEvent *e) override// won't change paper size
+	{	paperAboutMoveAlign();
 	};
 	bool eventFilter(QObject *obj, QEvent *ev) override
-	{	if(ev->type()==QEvent::Resize)// draw textEdit
-		{	if(!clicked) fresh_content(true);
-			else if(obj==&textEdit)
+	{	if(ev->type()==QEvent::Resize)// draw paper
+		{	if(!middleButtonClicked) fresh_content<true>();
+			else if(obj==&paperView && !paper.detached())// paper作为子控件缩小
 			{	auto&& new_size_f=static_cast<QResizeEvent*>(ev)->size().toSizeF();
 				auto&& old_size_f=static_cast<QResizeEvent*>(ev)->oldSize().toSizeF();
 
@@ -155,18 +134,18 @@ protected:
 					old_size_f.width();
 				// (newpos-center)/(pos-center)=ratio
 				auto newpos=((pos-center_point)*ratio+center_point).toPoint();
-				textEdit.move(newpos);
+				paperView.move(newpos);
 			}
 		}
-		if(ev->type()==QEvent::Paint && obj==&mask)// draw mask
+		if(obj==&mask && ev->type()==QEvent::Paint)// draw mask
 		{	QPainter qp{&mask};
 
 			// 绘制参数预算
 			bool tinyPaper_width_base_on_mask=false;// 画布缩放是否基于mask的宽
-			qreal paper_wh_ratio=papersize.width()/papersize.height();
+			qreal paper_wh_ratio=paper.realSize().toSizeF().width()/paper.realSize().toSizeF().height();
 			if(paper_wh_ratio>(qreal(mask.width())/mask.height())) tinyPaper_width_base_on_mask=true;// paper宽高比大于mask宽高比
 			QColor color_bg{120,120,120,30};
-			QColor color{180,200,255,50};
+			QColor color_fill{180,200,255,50};
 
 			// 绘制
 			if(tinyPaper_width_base_on_mask)
@@ -185,8 +164,8 @@ protected:
 				// 预览框轮廓示意
 				// size: pre/tinypaper=mask/paper=>pre=mask*(tinypaper/paper)
 				QSizeF pre_wh{
-					mask.width()*tinypaper_wh.height()/textEdit.height(),
-					mask.height()*tinypaper_wh.height()/textEdit.height()
+					mask.width()*tinypaper_wh.height()/paperView.height(),
+					mask.height()*tinypaper_wh.height()/paperView.height()
 				};
 				QRect rect{
 					qRound(contentAnchor.x()*tinypaper_wh.width()-pre_wh.width()/2),
@@ -194,7 +173,7 @@ protected:
 					qRound(pre_wh.width()),
 					qRound(pre_wh.height())
 				};
-				qp.fillRect(rect,color);
+				qp.fillRect(rect,color_fill);
 			}
 			else
 			{	// 纸张缩略图
@@ -212,8 +191,8 @@ protected:
 				// 预览框轮廓示意
 				// size: pre/tinypaper=mask/paper=>pre=mask*(tinypaper/paper)
 				QSizeF pre_wh{
-					mask.width()*tinypaper_wh.width()/textEdit.width(),
-					mask.height()*tinypaper_wh.width()/textEdit.width()
+					mask.width()*tinypaper_wh.width()/paperView.width(),
+					mask.height()*tinypaper_wh.width()/paperView.width()
 				};
 				QRect rect{
 					qRound(contentAnchor.x()*tinypaper_wh.width()-pre_wh.width()/2+(mask.width()-tinypaper_wh.width())/2),
@@ -221,43 +200,38 @@ protected:
 					qRound(pre_wh.width()),
 					qRound(pre_wh.height())
 				};
-				qp.fillRect(rect,color);
+				qp.fillRect(rect,color_fill);
 			}
 			return true;
 		}
-		if(obj==&mask && (ev->type()==QEvent::MouseButtonPress || ev->type()==QEvent::MouseMove))// show-pos control
+		if(obj==&mask && !paper.detached() && (ev->type()==QEvent::MouseButtonPress || ev->type()==QEvent::MouseMove))// show-pos control
 		{	if(static_cast<QMouseEvent*>(ev)->buttons()&Qt::MiddleButton)
-			{	if(!clicked) clicked=true;
+			{	if(!middleButtonClicked) middleButtonClicked=true;
 				contentAnchor.rx()=(static_cast<QMouseEvent*>(ev)->position().x()-rect_bg.x())/rect_bg.width();
 				contentAnchor.ry()=(static_cast<QMouseEvent*>(ev)->position().y()-rect_bg.y())/rect_bg.height();
-				// 同步到textEdit
-				QPointF center_point{mask.size().toSizeF().width()/2,mask.size().toSizeF().height()/2};
-				textEdit.move(
-					qRound(center_point.x()-textEdit.size().toSizeF().width()*contentAnchor.x()),
-					qRound(center_point.y()-textEdit.size().toSizeF().height()*contentAnchor.y())
-				);
+				// 同步到paper
+				paperAboutMoveAlign();
 				mask.update();
 				return true;
 			}
 		}
-		if(ev->type()==QEvent::Wheel && obj!=&textBrowser)// zoom paper
+		if(obj==&mask && !paper.detached() && ev->type()==QEvent::Wheel)// zoom paper
 		{	if (!static_cast<QWheelEvent*>(ev)->pixelDelta().isNull())
 				shrinkFactor*=(qreal(static_cast<QWheelEvent*>(ev)->pixelDelta().y())/1000+1);
 			else
 				shrinkFactor*=(qreal(static_cast<QWheelEvent*>(ev)->angleDelta().y())/1000+1);
 
-			textEditAboutResize();
+			paperAboutResize();
 
 			mask.update();
 			return true;
 		}
 		if(ev->type()==QEvent::MouseButtonDblClick && static_cast<QMouseEvent*>(ev)->button()==Qt::LeftButton)
-		{	textBrowser.show();
-			return true;
-		}
-		if(ev->type()==QEvent::Close && obj==&textBrowser){
-			textBrowser.hide();
-			return true;
+		{	if(obj==&mask)
+			{	paperProxy->setWidget(nullptr);         // 解除代理和控件的绑定
+				paper.detach();
+				return true;
+			}
 		}
 		return QWidget::eventFilter(obj,ev);
 	}

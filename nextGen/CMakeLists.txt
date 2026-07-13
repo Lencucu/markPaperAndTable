@@ -22,10 +22,13 @@ set(PROJECT_SOURCES
 	source/ceiling/ceiling/ScrollLand.hpp
 	source/ceiling/ceiling/ceiling/Card.hpp
 	source/ceiling/ceiling/ceiling/ceiling/Paper.hpp
+	source/ceiling/ceiling/ceiling/ceiling/Paper.cpp
 	source/standalone/docList/docList.hpp
 	source/tools/physical2pixel/physical2pixel.hpp
 	source/tools/physical2pixel/physical2pixel.cpp
 	source/test/graphics.hpp
+	source/test/MyWidget.hpp
+	source/test/MyWidget.cpp
 	source/main.cpp
 )
 
@@ -76,7 +79,7 @@ set_target_properties(markPaperAndTable PROPERTIES
 	MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
 	MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
 	MACOSX_BUNDLE TRUE
-	WIN32_EXECUTABLE TRUE
+	WIN32_EXECUTABLE FALSE
 )
 
 install(TARGETS markPaperAndTable

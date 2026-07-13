@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QHotkey>
+
 #include <test/graphics.hpp>
 
 
@@ -24,7 +25,7 @@ void displayLogicWrapper(QApplication& a)
 
 
 	MainBoard* mainboard=new MainBoard{new ScrollLand<Card,true>};
-		QHotkey* hotkey=new QHotkey{QKeySequence("Ctrl+Shift+Alt+Z"), true, &a}; //The hotkey will be automatically registered//    qDebug() << "Is registered:" << hotkey.isRegistered();
+		QHotkey* hotkey=new QHotkey{QKeySequence("Ctrl+Alt+."), true, &a}; //The hotkey will be automatically registered//    qDebug() << "Is registered:" << hotkey.isRegistered();
 		QObject::connect(hotkey, &QHotkey::activated, qApp, [&](){
 			if (mainboard->isVisible()) {
 				if(mainboard->isActiveWindow())
@@ -63,6 +64,8 @@ void displayLogicWrapper(QApplication& a)
 #include <windows.h>
 
 
+// #include <test/graphics.hpp>
+// #include <test/MyWidget.hpp>
 int main(int argc, char *argv[])
 {	HANDLE hMutex = CreateMutexA(NULL, TRUE, "Global\\MyUniqueAppName");
 	if (GetLastError() == ERROR_ALREADY_EXISTS) return 0; // 已有实例
